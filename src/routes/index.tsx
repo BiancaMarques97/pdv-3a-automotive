@@ -38,6 +38,7 @@ function PdvPage() {
   const [notes, setNotes] = useState("");
   const [responsible, setResponsible] = useState("Luiz Carlos");
   const [showAdd, setShowAdd] = useState(false);
+  const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [showNote, setShowNote] = useState<string | null>(null);
   const [printOrder, setPrintOrder] = useState<Order | null>(null);
   const [history, setHistory] = useState<Order[]>([]);
