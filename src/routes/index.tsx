@@ -38,6 +38,7 @@ function PdvPage() {
   const [notes, setNotes] = useState("");
   const [responsible, setResponsible] = useState("Luiz Carlos");
   const [showAdd, setShowAdd] = useState(false);
+  const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [showNote, setShowNote] = useState<string | null>(null);
   const [printOrder, setPrintOrder] = useState<Order | null>(null);
   const [history, setHistory] = useState<Order[]>([]);
@@ -127,7 +128,12 @@ function PdvPage() {
           <section className="col-span-12 flex flex-col overflow-hidden rounded-lg border bg-surface lg:col-span-3">
             <div className="flex items-center justify-between border-b px-4 py-3">
               <div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Clientes</div>
-              <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{results.length}</span>
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{results.length}</span>
+                <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => setShowNewCustomer(true)} title="Novo cliente">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <div className="flex-1 overflow-auto">
               {results.length === 0 ? (
@@ -209,7 +215,7 @@ function PdvPage() {
                       <thead className="sticky top-0 bg-surface text-xs uppercase text-muted-foreground">
                         <tr className="border-b">
                           <th className="px-3 py-2 text-left font-semibold">Código</th>
-                          <th className="px-3 py-2 text-left font-semibold">Descrição</th>
+                          <th className="px-3 py-2 text-left font-semibold">Produto</th>
                           <th className="px-2 py-2 text-center font-semibold">Qtd</th>
                           <th className="px-2 py-2 text-center font-semibold">Vendida</th>
                           <th className="px-2 py-2 text-right font-semibold">Unit.</th>
@@ -327,6 +333,16 @@ function PdvPage() {
         onClose={() => setShowAdd(false)}
         onAdd={(item) => { setItems(prev => [...prev, item]); setShowAdd(false); }}
       />
+      <NewCustomerDialog
+        open={showNewCustomer}
+        onClose={() => setShowNewCustomer(false)}
+        onCreated={(customer) => {
+          setShowNewCustomer(false);
+          setResults(customersAPI.list());
+          setSelected(customer);
+          toast.success(`Cliente "${customer.name}" cadastrado`);
+        }}
+      />
       <NoteDialog
         open={!!showNote}
         item={items.find(i => i.id === showNote) ?? null}
@@ -351,10 +367,11 @@ function EmptyState() {
 function AddItemDialog({ open, onClose, onAdd }: { open: boolean; onClose: () => void; onAdd: (i: ConsignedItem) => void }) {
   const [code, setCode] = useState("");
   const [desc, setDesc] = useState("");
+  const [note, setNote] = useState("");
   const [qty, setQty] = useState(1);
   const [price, setPrice] = useState(0);
 
-  useEffect(() => { if (open) { setCode(""); setDesc(""); setQty(1); setPrice(0); } }, [open]);
+  useEffect(() => { if (open) { setCode(""); setDesc(""); setNote(""); setQty(1); setPrice(0); } }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -362,20 +379,129 @@ function AddItemDialog({ open, onClose, onAdd }: { open: boolean; onClose: () =>
         <DialogHeader><DialogTitle>Adicionar item consignado</DialogTitle></DialogHeader>
         <div className="grid gap-3">
           <div><Label>Código</Label><Input value={code} onChange={e => setCode(e.target.value)} className="h-11" /></div>
-          <div><Label>Descrição</Label><Input value={desc} onChange={e => setDesc(e.target.value)} className="h-11" /></div>
+          <div><Label>Produto</Label><Input value={desc} onChange={e => setDesc(e.target.value)} placeholder="Nome do produto" className="h-11" /></div>
           <div className="grid grid-cols-2 gap-3">
             <div><Label>Quantidade</Label><Input type="number" min={1} value={qty} onChange={e => setQty(Number(e.target.value) || 1)} className="h-11" /></div>
             <div><Label>Valor unit. (R$)</Label><Input type="number" min={0} step="0.01" value={price} onChange={e => setPrice(Number(e.target.value) || 0)} className="h-11" /></div>
+          </div>
+          <div>
+            <Label>Descrição <span className="text-xs font-normal text-muted-foreground">(opcional)</span></Label>
+            <Textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder="Anotação sobre o item..." />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button
             onClick={() => {
-              if (!code || !desc) { toast.error("Preencha código e descrição"); return; }
-              onAdd({ id: uid(), code, description: desc, quantity: qty, sold: 0, unitPrice: price });
+              if (!code || !desc) { toast.error("Preencha código e produto"); return; }
+              onAdd({ id: uid(), code, description: desc, quantity: qty, sold: 0, unitPrice: price, note: note || undefined });
             }}
           >Adicionar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function NewCustomerDialog({
+  open, onClose, onCreated,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onCreated: (customer: Customer, items: ConsignedItem[]) => void;
+}) {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [city, setCity] = useState("");
+  const [doc, setDoc] = useState("");
+  const [items, setItems] = useState<ConsignedItem[]>([]);
+  const [code, setCode] = useState("");
+  const [product, setProduct] = useState("");
+  const [note, setNote] = useState("");
+  const [qty, setQty] = useState(1);
+  const [price, setPrice] = useState(0);
+
+  useEffect(() => {
+    if (open) {
+      setName(""); setPhone(""); setCity(""); setDoc("");
+      setItems([]); setCode(""); setProduct(""); setNote(""); setQty(1); setPrice(0);
+    }
+  }, [open]);
+
+  const addItem = () => {
+    if (!code || !product) { toast.error("Preencha código e produto"); return; }
+    setItems(prev => [...prev, {
+      id: uid(), code, description: product, quantity: qty, sold: 0, unitPrice: price, note: note || undefined,
+    }]);
+    setCode(""); setProduct(""); setNote(""); setQty(1); setPrice(0);
+  };
+
+  const submit = () => {
+    if (!name.trim()) { toast.error("Informe o nome do cliente"); return; }
+    const customer = customersAPI.create({
+      name: name.trim(), phone: phone.trim(), city: city.trim(), document: doc.trim() || undefined,
+    });
+    let finalItems = items;
+    if (code && product) {
+      finalItems = [...items, {
+        id: uid(), code, description: product, quantity: qty, sold: 0, unitPrice: price, note: note || undefined,
+      }];
+    }
+    consignedAPI.saveForCustomer(customer.id, finalItems);
+    onCreated(customer, finalItems);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader><DialogTitle>Novo cliente</DialogTitle></DialogHeader>
+        <div className="grid gap-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div><Label>Nome *</Label><Input value={name} onChange={e => setName(e.target.value)} className="h-11" placeholder="Nome do cliente / oficina" /></div>
+            <div><Label>Telefone</Label><Input value={phone} onChange={e => setPhone(e.target.value)} className="h-11" placeholder="(31) 9..." /></div>
+            <div><Label>Cidade</Label><Input value={city} onChange={e => setCity(e.target.value)} className="h-11" placeholder="Ex: Belo Horizonte / MG" /></div>
+            <div><Label>CNPJ / CPF</Label><Input value={doc} onChange={e => setDoc(e.target.value)} className="h-11" /></div>
+          </div>
+
+          <div className="rounded-md border bg-muted/30 p-3">
+            <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+              <Package className="h-4 w-4 text-primary" />
+              Adicionar itens consignados
+              <span className="ml-auto rounded-full bg-surface px-2 py-0.5 text-xs text-muted-foreground">{items.length}</span>
+            </div>
+            <div className="grid grid-cols-12 gap-2">
+              <div className="col-span-3"><Label className="text-xs">Código</Label><Input value={code} onChange={e => setCode(e.target.value)} className="h-10" /></div>
+              <div className="col-span-5"><Label className="text-xs">Produto</Label><Input value={product} onChange={e => setProduct(e.target.value)} className="h-10" placeholder="Nome do produto" /></div>
+              <div className="col-span-2"><Label className="text-xs">Qtd</Label><Input type="number" min={1} value={qty} onChange={e => setQty(Number(e.target.value) || 1)} className="h-10" /></div>
+              <div className="col-span-2"><Label className="text-xs">Valor R$</Label><Input type="number" min={0} step="0.01" value={price} onChange={e => setPrice(Number(e.target.value) || 0)} className="h-10" /></div>
+              <div className="col-span-12">
+                <Label className="text-xs">Descrição <span className="font-normal text-muted-foreground">(opcional)</span></Label>
+                <Textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder="Anotação sobre o item..." />
+              </div>
+              <div className="col-span-12 flex justify-end">
+                <Button size="sm" variant="secondary" onClick={addItem}><Plus className="mr-1 h-4 w-4" />Adicionar item à lista</Button>
+              </div>
+            </div>
+
+            {items.length > 0 && (
+              <ul className="mt-3 divide-y rounded-md border bg-surface text-sm">
+                {items.map((it, idx) => (
+                  <li key={it.id} className="flex items-center gap-2 px-3 py-2">
+                    <span className="font-mono text-xs text-muted-foreground">{it.code}</span>
+                    <span className="flex-1 truncate font-medium">{it.description}</span>
+                    <span className="text-xs text-muted-foreground">{it.quantity}x · {fmtBRL(it.unitPrice)}</span>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button onClick={submit}><Save className="mr-2 h-4 w-4" />Criar cliente</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
