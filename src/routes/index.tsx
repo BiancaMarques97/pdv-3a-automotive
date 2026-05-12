@@ -127,7 +127,12 @@ function PdvPage() {
           <section className="col-span-12 flex flex-col overflow-hidden rounded-lg border bg-surface lg:col-span-3">
             <div className="flex items-center justify-between border-b px-4 py-3">
               <div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Clientes</div>
-              <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{results.length}</span>
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{results.length}</span>
+                <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => setShowNewCustomer(true)} title="Novo cliente">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <div className="flex-1 overflow-auto">
               {results.length === 0 ? (
