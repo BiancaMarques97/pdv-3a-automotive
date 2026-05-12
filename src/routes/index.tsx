@@ -209,7 +209,7 @@ function PdvPage() {
                       <thead className="sticky top-0 bg-surface text-xs uppercase text-muted-foreground">
                         <tr className="border-b">
                           <th className="px-3 py-2 text-left font-semibold">Código</th>
-                          <th className="px-3 py-2 text-left font-semibold">Descrição</th>
+                          <th className="px-3 py-2 text-left font-semibold">Produto</th>
                           <th className="px-2 py-2 text-center font-semibold">Qtd</th>
                           <th className="px-2 py-2 text-center font-semibold">Vendida</th>
                           <th className="px-2 py-2 text-right font-semibold">Unit.</th>
