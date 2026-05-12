@@ -70,8 +70,8 @@ function PdvPage() {
   const removeItem = (id: string) => setItems(prev => prev.filter(i => i.id !== id));
 
   const saveOrder = (alsoPrint = false) => {
-    if (!selected) return toast.error("Selecione um cliente");
-    if (totals.totalQty === 0) return toast.error("Informe pelo menos uma quantidade vendida");
+    if (!selected) { toast.error("Selecione um cliente"); return; }
+    if (totals.totalQty === 0) { toast.error("Informe pelo menos uma quantidade vendida"); return; }
     // persist remaining consignment
     const remaining = items.map(i => ({ ...i, quantity: Math.max(0, i.quantity - i.sold), sold: 0, note: "" }));
     consignedAPI.saveForCustomer(selected.id, remaining);
