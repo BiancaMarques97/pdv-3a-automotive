@@ -333,6 +333,16 @@ function PdvPage() {
         onClose={() => setShowAdd(false)}
         onAdd={(item) => { setItems(prev => [...prev, item]); setShowAdd(false); }}
       />
+      <NewCustomerDialog
+        open={showNewCustomer}
+        onClose={() => setShowNewCustomer(false)}
+        onCreated={(customer) => {
+          setShowNewCustomer(false);
+          setResults(customersAPI.list());
+          setSelected(customer);
+          toast.success(`Cliente "${customer.name}" cadastrado`);
+        }}
+      />
       <NoteDialog
         open={!!showNote}
         item={items.find(i => i.id === showNote) ?? null}
