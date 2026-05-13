@@ -10,7 +10,6 @@ export const ThermalReceipt = forwardRef<HTMLDivElement, { order: Order }>(
       <div ref={ref} className="thermal print-area">
         <div className="center">
           <img src={logoMono} alt="3A Automotive" className="thermal-logo" />
-          <h2>3A AUTOMOTIVE</h2>
           <div>Auto Peças e Acessórios</div>
           <div>CNPJ 00.000.000/0001-00</div>
           <div>Tel: (31) 0000-0000</div>
