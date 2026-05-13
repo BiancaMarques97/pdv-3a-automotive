@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useIsDesktop } from "@/hooks/use-desktop";
 import {
   Search, Plus, Trash2, Printer, Save, FileSpreadsheet, MapPin, Phone,
-  User, Package, ReceiptText, MessageSquarePlus, ArrowLeft, Minus, ChevronRight, CheckCircle2,
+  User, Package, ReceiptText, MessageSquarePlus, ArrowLeft, Minus, ChevronRight, CheckCircle2, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -160,6 +160,7 @@ function PdvPage() {
           onRemove={removeItem}
           onNote={setShowNote}
           onNewCustomer={() => setShowNewCustomer(true)}
+          onTrocar={backToCustomers}
           onSave={() => saveOrder(false)}
           onSavePrint={() => saveOrder(true)}
           onExport={handleExport}
@@ -226,7 +227,7 @@ function PdvPage() {
 function DesktopPdv({
   query, setQuery, results, selected, onPick,
   items, totals, payment, setPayment, responsible, setResponsible, notes, setNotes,
-  onAdd, onUpdate, onRemove, onNote, onNewCustomer,
+  onAdd, onUpdate, onRemove, onNote, onNewCustomer, onTrocar,
   onSave, onSavePrint, onExport,
 }: {
   query: string; setQuery: (s: string) => void;
@@ -241,86 +242,144 @@ function DesktopPdv({
   onRemove: (id: string) => void;
   onNote: (id: string) => void;
   onNewCustomer: () => void;
+  onTrocar: () => void;
   onSave: () => void;
   onSavePrint: () => void;
   onExport: () => void;
 }) {
+  const today = useMemo(
+    () => new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long" }).format(new Date()),
+    []
+  );
+  const lastOrders = useMemo(() => {
+    if (!selected) return [];
+    return ordersAPI.list().filter(o => o.customerId === selected.id).slice(0, 1);
+  }, [selected, items]);
+
+  const hasSelection = !!selected;
+  const canSave = hasSelection && totals.totalQty > 0;
+
   return (
-    <div className="grid h-full grid-cols-[340px_1fr] gap-0">
-      {/* Left: customers */}
-      <aside className="flex h-full flex-col border-r bg-surface">
-        <div className="border-b p-4">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              placeholder="Buscar cliente..."
-              className="h-11 pl-9"
-            />
-          </div>
-          <Button variant="outline" size="sm" className="mt-2 w-full" onClick={onNewCustomer}>
-            <Plus className="mr-1 h-4 w-4" />Novo cliente
-          </Button>
+    <div className="flex h-full flex-col bg-muted/30">
+      {/* Top bar: search + date */}
+      <div className="flex items-center gap-4 border-b bg-surface px-6 py-3">
+        <div className="relative flex-1 max-w-2xl">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Buscar cliente por nome, telefone ou cidade..."
+            className="h-12 rounded-full pl-12 text-base"
+          />
         </div>
-        <div className="flex-1 overflow-auto p-2">
-          {results.map(c => {
-            const active = selected?.id === c.id;
-            return (
-              <button
-                key={c.id}
-                onClick={() => onPick(c)}
-                className={`flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left transition ${
-                  active ? "bg-accent text-primary" : "hover:bg-muted"
-                }`}
-              >
-                <User className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold">{c.name}</div>
-                  <div className="truncate text-xs text-muted-foreground">{c.phone} · {c.city}</div>
-                </div>
-              </button>
-            );
-          })}
-          {results.length === 0 && (
-            <div className="p-6 text-center text-xs text-muted-foreground">Nenhum cliente</div>
-          )}
+        <div className="ml-auto text-sm font-medium capitalize text-muted-foreground" suppressHydrationWarning>
+          {today}
         </div>
-      </aside>
+      </div>
 
-      {/* Right: items + finalize */}
-      <section className="flex h-full min-w-0 flex-col">
-        {!selected ? (
-          <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-            Selecione um cliente para iniciar o pedido.
+      {/* 3-col grid */}
+      <div className="grid min-h-0 flex-1 grid-cols-[280px_1fr_340px] gap-4 p-4">
+        {/* Customers column */}
+        <aside className="flex min-h-0 flex-col overflow-hidden rounded-lg border bg-surface">
+          <div className="flex items-center justify-between border-b px-4 py-3">
+            <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Clientes</div>
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+              {results.length}
+            </span>
           </div>
-        ) : (
-          <>
-            <div className="flex items-center justify-between border-b bg-surface px-6 py-3">
-              <div>
-                <div className="text-lg font-bold leading-tight">{selected.name}</div>
-                <div className="flex gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{selected.phone}</span>
-                  <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{selected.city}</span>
-                </div>
-              </div>
-              <Button onClick={onAdd}>
-                <Plus className="mr-1 h-4 w-4" />Adicionar item
-              </Button>
+          <div className="flex-1 overflow-auto p-2">
+            {results.map(c => {
+              const active = selected?.id === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => onPick(c)}
+                  className={`mb-1 flex w-full flex-col gap-0.5 rounded-md px-3 py-2.5 text-left transition ${
+                    active ? "bg-accent" : "hover:bg-muted"
+                  }`}
+                >
+                  <div className="truncate text-sm font-bold">{c.name}</div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Phone className="h-3 w-3" />{c.phone}
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <MapPin className="h-3 w-3" />{c.city}
+                  </div>
+                </button>
+              );
+            })}
+            {results.length === 0 && (
+              <div className="p-6 text-center text-xs text-muted-foreground">Nenhum cliente</div>
+            )}
+          </div>
+          <div className="border-t p-2">
+            <Button variant="outline" size="sm" className="w-full" onClick={onNewCustomer}>
+              <Plus className="mr-1 h-4 w-4" />Novo cliente
+            </Button>
+          </div>
+        </aside>
+
+        {/* Center: client + items */}
+        <section className="flex min-h-0 flex-col gap-4 overflow-auto">
+          {!hasSelection ? (
+            <div className="flex flex-1 items-center justify-center rounded-lg border bg-surface text-sm text-muted-foreground">
+              Selecione um cliente para iniciar o pedido.
             </div>
+          ) : (
+            <>
+              {/* Selected customer card */}
+              <div className="rounded-lg border bg-surface p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Cliente Selecionado
+                    </div>
+                    <div className="mt-0.5 truncate text-2xl font-bold">{selected!.name}</div>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1"><Phone className="h-4 w-4" />{selected!.phone}</span>
+                      <span className="flex items-center gap-1"><MapPin className="h-4 w-4" />{selected!.city}</span>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={onTrocar}>
+                    <X className="mr-1 h-4 w-4" />Trocar
+                  </Button>
+                </div>
+                {lastOrders.length > 0 && (
+                  <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="font-semibold">Últimos pedidos:</span>
+                    {lastOrders.map(o => (
+                      <span key={o.id} className="rounded-md bg-muted px-2 py-1 font-mono">
+                        #{o.number} · {fmtBRL(o.total)}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            <div className="flex-1 overflow-auto p-6">
+              {/* Items header */}
+              <div className="flex items-center justify-between rounded-lg border bg-surface px-5 py-3">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Package className="h-4 w-4 text-primary" />
+                  Itens Consignados
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{items.length}</span>
+                </div>
+                <Button onClick={onAdd}>
+                  <Plus className="mr-1 h-4 w-4" />Adicionar item
+                </Button>
+              </div>
+
+              {/* Items table */}
               <div className="overflow-hidden rounded-lg border bg-surface">
                 <table className="w-full text-sm">
-                  <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
+                  <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
                     <tr>
-                      <th className="px-3 py-2 text-left">Código</th>
-                      <th className="px-3 py-2 text-left">Produto</th>
-                      <th className="px-3 py-2 text-right">Disp.</th>
-                      <th className="px-3 py-2 text-right">Vendida</th>
-                      <th className="px-3 py-2 text-right">Unit.</th>
-                      <th className="px-3 py-2 text-right">Subtotal</th>
-                      <th className="px-3 py-2"></th>
+                      <th className="px-4 py-2.5 text-left">Código</th>
+                      <th className="px-4 py-2.5 text-left">Descrição</th>
+                      <th className="px-4 py-2.5 text-center w-16">Qtd</th>
+                      <th className="px-4 py-2.5 text-center w-24">Vendida</th>
+                      <th className="px-4 py-2.5 text-right w-24">Unit.</th>
+                      <th className="px-4 py-2.5 text-right w-28">Subtotal</th>
+                      <th className="px-4 py-2.5 text-center w-24">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -328,89 +387,106 @@ function DesktopPdv({
                       <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Sem itens consignados.</td></tr>
                     )}
                     {items.map(i => (
-                      <tr key={i.id} className="hover:bg-muted/30">
-                        <td className="px-3 py-2 font-mono text-xs">{i.code}</td>
-                        <td className="px-3 py-2">
+                      <tr key={i.id} className="hover:bg-muted/20">
+                        <td className="px-4 py-3 font-mono text-xs">{i.code}</td>
+                        <td className="px-4 py-3">
                           <div className="font-medium">{i.description}</div>
                           {i.note && <div className="text-xs italic text-muted-foreground">obs: {i.note}</div>}
                         </td>
-                        <td className="px-3 py-2 text-right">{i.quantity}</td>
-                        <td className="px-3 py-2 text-right">
+                        <td className="px-4 py-3 text-center">{i.quantity}</td>
+                        <td className="px-4 py-3 text-center">
                           <Input
                             type="number" min={0} max={i.quantity} value={i.sold}
                             onChange={e => onUpdate(i.id, { sold: Math.max(0, Math.min(i.quantity, Number(e.target.value) || 0)) })}
-                            className="ml-auto h-9 w-20 text-right"
+                            className="mx-auto h-9 w-16 text-center"
                           />
                         </td>
-                        <td className="px-3 py-2 text-right">{fmtBRL(i.unitPrice)}</td>
-                        <td className="px-3 py-2 text-right font-semibold">{fmtBRL(i.sold * i.unitPrice)}</td>
-                        <td className="px-3 py-2 text-right">
-                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onNote(i.id)} title="Observação">
-                            <MessageSquarePlus className="h-4 w-4" />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => onRemove(i.id)} title="Remover">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <td className="px-4 py-3 text-right">{fmtBRL(i.unitPrice)}</td>
+                        <td className="px-4 py-3 text-right font-bold text-primary">{fmtBRL(i.sold * i.unitPrice)}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-center gap-0.5">
+                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onNote(i.id)} title="Observação">
+                              <MessageSquarePlus className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => onRemove(i.id)} title="Remover">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+            </>
+          )}
+        </section>
 
-              <div className="mt-4 grid grid-cols-3 gap-4">
-                <div>
-                  <Label className="mb-1 block text-xs uppercase text-muted-foreground">Pagamento</Label>
-                  <Select value={payment} onValueChange={setPayment}>
-                    <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                      <SelectItem value="Pix">Pix</SelectItem>
-                      <SelectItem value="Cartão Débito">Cartão Débito</SelectItem>
-                      <SelectItem value="Cartão Crédito">Cartão Crédito</SelectItem>
-                      <SelectItem value="A Prazo">A Prazo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="mb-1 block text-xs uppercase text-muted-foreground">Responsável</Label>
-                  <Select value={responsible} onValueChange={setResponsible}>
-                    <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Luiz Carlos">Luiz Carlos</SelectItem>
-                      <SelectItem value="Fábio Fonseca">Fábio Fonseca</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="mb-1 block text-xs uppercase text-muted-foreground">Observações</Label>
-                  <Input value={notes} onChange={e => setNotes(e.target.value)} className="h-10" placeholder="Notas..." />
-                </div>
+        {/* Right: order summary */}
+        <aside className="flex min-h-0 flex-col overflow-hidden rounded-lg border bg-surface">
+          <div className="flex flex-1 flex-col overflow-auto">
+            <div className="bg-foreground px-5 py-4 text-background">
+              <div className="text-[11px] font-bold uppercase tracking-wider opacity-70">Resumo do Pedido</div>
+              <div className="mt-3 flex items-baseline justify-between">
+                <span className="text-sm">Itens</span>
+                <span className="text-2xl font-bold">{totals.totalQty}</span>
+              </div>
+              <div className="mt-1 flex items-baseline justify-between">
+                <span className="text-sm">Total</span>
+                <span className="text-3xl font-extrabold text-primary">{fmtBRL(totals.total)}</span>
               </div>
             </div>
 
-            <div className="border-t bg-surface px-6 py-3">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-6">
-                  <div>
-                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Itens</div>
-                    <div className="text-lg font-bold">{totals.totalQty}</div>
-                  </div>
-                  <div>
-                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Total</div>
-                    <div className="text-2xl font-extrabold text-primary">{fmtBRL(totals.total)}</div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={onExport}><FileSpreadsheet className="mr-2 h-4 w-4" />Excel</Button>
-                  <Button variant="outline" onClick={onSave}><Save className="mr-2 h-4 w-4" />Salvar</Button>
-                  <Button onClick={onSavePrint}><Printer className="mr-2 h-4 w-4" />Salvar e Imprimir</Button>
-                </div>
+            <div className="space-y-4 p-5">
+              <div>
+                <Label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Pagamento</Label>
+                <Select value={payment} onValueChange={setPayment}>
+                  <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="Pix">Pix</SelectItem>
+                    <SelectItem value="Cartão Débito">Cartão Débito</SelectItem>
+                    <SelectItem value="Cartão Crédito">Cartão Crédito</SelectItem>
+                    <SelectItem value="A Prazo">A Prazo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Responsável</Label>
+                <Select value={responsible} onValueChange={setResponsible}>
+                  <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Luiz Carlos">Luiz Carlos</SelectItem>
+                    <SelectItem value="Fábio Fonseca">Fábio Fonseca</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Observações</Label>
+                <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Notas do pedido..." />
               </div>
             </div>
-          </>
-        )}
-      </section>
+          </div>
+
+          <div className="space-y-2 border-t bg-surface p-4">
+            <Button className="h-12 w-full text-base font-semibold" onClick={onSave} disabled={!canSave}>
+              <Save className="mr-2 h-5 w-5" />Salvar Pedido
+            </Button>
+            <Button
+              className="h-12 w-full bg-foreground text-base font-semibold text-background hover:bg-foreground/90"
+              onClick={onSavePrint}
+              disabled={!canSave}
+            >
+              <Printer className="mr-2 h-5 w-5" />Imprimir Canhoto
+            </Button>
+            <Button variant="outline" className="h-12 w-full text-base" onClick={onExport} disabled={!canSave}>
+              <FileSpreadsheet className="mr-2 h-5 w-5" />Exportar Excel
+            </Button>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }
