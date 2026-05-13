@@ -34,6 +34,7 @@ export const Route = createFileRoute("/")({
 type Step = "customers" | "items" | "finalize" | "done";
 
 function PdvPage() {
+  const isDesktop = useIsDesktop();
   const [step, setStep] = useState<Step>("customers");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Customer[]>(() => customersAPI.list());
@@ -68,6 +69,7 @@ function PdvPage() {
   const updateItem = (id: string, patch: Partial<ConsignedItem>) =>
     setItems(prev => prev.map(i => i.id === id ? { ...i, ...patch } : i));
   const removeItem = (id: string) => setItems(prev => prev.filter(i => i.id !== id));
+  const addItem = (item: ConsignedItem) => setItems(prev => [...prev, item]);
 
   const pickCustomer = (c: Customer) => { setSelected(c); setStep("items"); };
   const backToCustomers = () => { setSelected(null); setStep("customers"); };
@@ -94,7 +96,7 @@ function PdvPage() {
     setItems(remaining);
     setNotes("");
     if (alsoPrint) setPrintOrder(order);
-    setStep("done");
+    if (!isDesktop) setStep("done");
     toast.success(`Pedido #${order.number} salvo`);
     return order;
   };
@@ -114,6 +116,58 @@ function PdvPage() {
     finalize: "Finalizar Pedido",
     done: "Pedido Finalizado",
   };
+
+  const dialogs = (
+    <>
+      <AddItemDialog
+        open={showAdd}
+        onClose={() => setShowAdd(false)}
+        onAdd={addItem}
+      />
+      <NewCustomerDialog
+        open={showNewCustomer}
+        onClose={() => setShowNewCustomer(false)}
+        onCreated={(customer) => {
+          setShowNewCustomer(false);
+          setResults(customersAPI.list());
+          pickCustomer(customer);
+          toast.success(`Cliente "${customer.name}" cadastrado`);
+        }}
+      />
+      <NoteDialog
+        open={!!showNote}
+        item={items.find(i => i.id === showNote) ?? null}
+        onClose={() => setShowNote(null)}
+        onSave={(note) => { if (showNote) updateItem(showNote, { note }); setShowNote(null); }}
+      />
+      <PrintDialog open={!!printOrder} order={printOrder} onClose={() => setPrintOrder(null)} printRef={printRef} />
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <AppShell title="PDV — Pedidos & Consignados">
+        <DesktopPdv
+          query={query} setQuery={setQuery}
+          results={results}
+          selected={selected} onPick={pickCustomer}
+          items={items} totals={totals}
+          payment={payment} setPayment={setPayment}
+          responsible={responsible} setResponsible={setResponsible}
+          notes={notes} setNotes={setNotes}
+          onAdd={() => setShowAdd(true)}
+          onUpdate={updateItem}
+          onRemove={removeItem}
+          onNote={setShowNote}
+          onNewCustomer={() => setShowNewCustomer(true)}
+          onSave={() => saveOrder(false)}
+          onSavePrint={() => saveOrder(true)}
+          onExport={handleExport}
+        />
+        {dialogs}
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell title={titles[step]}>
@@ -162,29 +216,202 @@ function PdvPage() {
         />
       )}
 
-      <AddItemDialog
-        open={showAdd}
-        onClose={() => setShowAdd(false)}
-        onAdd={(item) => { setItems(prev => [...prev, item]); setShowAdd(false); }}
-      />
-      <NewCustomerDialog
-        open={showNewCustomer}
-        onClose={() => setShowNewCustomer(false)}
-        onCreated={(customer) => {
-          setShowNewCustomer(false);
-          setResults(customersAPI.list());
-          pickCustomer(customer);
-          toast.success(`Cliente "${customer.name}" cadastrado`);
-        }}
-      />
-      <NoteDialog
-        open={!!showNote}
-        item={items.find(i => i.id === showNote) ?? null}
-        onClose={() => setShowNote(null)}
-        onSave={(note) => { if (showNote) updateItem(showNote, { note }); setShowNote(null); }}
-      />
-      <PrintDialog open={!!printOrder} order={printOrder} onClose={() => setPrintOrder(null)} printRef={printRef} />
+      {dialogs}
     </AppShell>
+  );
+}
+
+/* ============== Desktop ERP layout ============== */
+
+function DesktopPdv({
+  query, setQuery, results, selected, onPick,
+  items, totals, payment, setPayment, responsible, setResponsible, notes, setNotes,
+  onAdd, onUpdate, onRemove, onNote, onNewCustomer,
+  onSave, onSavePrint, onExport,
+}: {
+  query: string; setQuery: (s: string) => void;
+  results: Customer[]; selected: Customer | null; onPick: (c: Customer) => void;
+  items: ConsignedItem[];
+  totals: { totalQty: number; total: number };
+  payment: string; setPayment: (s: string) => void;
+  responsible: string; setResponsible: (s: string) => void;
+  notes: string; setNotes: (s: string) => void;
+  onAdd: () => void;
+  onUpdate: (id: string, patch: Partial<ConsignedItem>) => void;
+  onRemove: (id: string) => void;
+  onNote: (id: string) => void;
+  onNewCustomer: () => void;
+  onSave: () => void;
+  onSavePrint: () => void;
+  onExport: () => void;
+}) {
+  return (
+    <div className="grid h-full grid-cols-[340px_1fr] gap-0">
+      {/* Left: customers */}
+      <aside className="flex h-full flex-col border-r bg-surface">
+        <div className="border-b p-4">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Buscar cliente..."
+              className="h-11 pl-9"
+            />
+          </div>
+          <Button variant="outline" size="sm" className="mt-2 w-full" onClick={onNewCustomer}>
+            <Plus className="mr-1 h-4 w-4" />Novo cliente
+          </Button>
+        </div>
+        <div className="flex-1 overflow-auto p-2">
+          {results.map(c => {
+            const active = selected?.id === c.id;
+            return (
+              <button
+                key={c.id}
+                onClick={() => onPick(c)}
+                className={`flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left transition ${
+                  active ? "bg-accent text-primary" : "hover:bg-muted"
+                }`}
+              >
+                <User className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold">{c.name}</div>
+                  <div className="truncate text-xs text-muted-foreground">{c.phone} · {c.city}</div>
+                </div>
+              </button>
+            );
+          })}
+          {results.length === 0 && (
+            <div className="p-6 text-center text-xs text-muted-foreground">Nenhum cliente</div>
+          )}
+        </div>
+      </aside>
+
+      {/* Right: items + finalize */}
+      <section className="flex h-full min-w-0 flex-col">
+        {!selected ? (
+          <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+            Selecione um cliente para iniciar o pedido.
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between border-b bg-surface px-6 py-3">
+              <div>
+                <div className="text-lg font-bold leading-tight">{selected.name}</div>
+                <div className="flex gap-3 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{selected.phone}</span>
+                  <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{selected.city}</span>
+                </div>
+              </div>
+              <Button onClick={onAdd}>
+                <Plus className="mr-1 h-4 w-4" />Adicionar item
+              </Button>
+            </div>
+
+            <div className="flex-1 overflow-auto p-6">
+              <div className="overflow-hidden rounded-lg border bg-surface">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Código</th>
+                      <th className="px-3 py-2 text-left">Produto</th>
+                      <th className="px-3 py-2 text-right">Disp.</th>
+                      <th className="px-3 py-2 text-right">Vendida</th>
+                      <th className="px-3 py-2 text-right">Unit.</th>
+                      <th className="px-3 py-2 text-right">Subtotal</th>
+                      <th className="px-3 py-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {items.length === 0 && (
+                      <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Sem itens consignados.</td></tr>
+                    )}
+                    {items.map(i => (
+                      <tr key={i.id} className="hover:bg-muted/30">
+                        <td className="px-3 py-2 font-mono text-xs">{i.code}</td>
+                        <td className="px-3 py-2">
+                          <div className="font-medium">{i.description}</div>
+                          {i.note && <div className="text-xs italic text-muted-foreground">obs: {i.note}</div>}
+                        </td>
+                        <td className="px-3 py-2 text-right">{i.quantity}</td>
+                        <td className="px-3 py-2 text-right">
+                          <Input
+                            type="number" min={0} max={i.quantity} value={i.sold}
+                            onChange={e => onUpdate(i.id, { sold: Math.max(0, Math.min(i.quantity, Number(e.target.value) || 0)) })}
+                            className="ml-auto h-9 w-20 text-right"
+                          />
+                        </td>
+                        <td className="px-3 py-2 text-right">{fmtBRL(i.unitPrice)}</td>
+                        <td className="px-3 py-2 text-right font-semibold">{fmtBRL(i.sold * i.unitPrice)}</td>
+                        <td className="px-3 py-2 text-right">
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onNote(i.id)} title="Observação">
+                            <MessageSquarePlus className="h-4 w-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => onRemove(i.id)} title="Remover">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-4">
+                <div>
+                  <Label className="mb-1 block text-xs uppercase text-muted-foreground">Pagamento</Label>
+                  <Select value={payment} onValueChange={setPayment}>
+                    <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                      <SelectItem value="Pix">Pix</SelectItem>
+                      <SelectItem value="Cartão Débito">Cartão Débito</SelectItem>
+                      <SelectItem value="Cartão Crédito">Cartão Crédito</SelectItem>
+                      <SelectItem value="A Prazo">A Prazo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="mb-1 block text-xs uppercase text-muted-foreground">Responsável</Label>
+                  <Select value={responsible} onValueChange={setResponsible}>
+                    <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Luiz Carlos">Luiz Carlos</SelectItem>
+                      <SelectItem value="Fábio Fonseca">Fábio Fonseca</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="mb-1 block text-xs uppercase text-muted-foreground">Observações</Label>
+                  <Input value={notes} onChange={e => setNotes(e.target.value)} className="h-10" placeholder="Notas..." />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t bg-surface px-6 py-3">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-6">
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Itens</div>
+                    <div className="text-lg font-bold">{totals.totalQty}</div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Total</div>
+                    <div className="text-2xl font-extrabold text-primary">{fmtBRL(totals.total)}</div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={onExport}><FileSpreadsheet className="mr-2 h-4 w-4" />Excel</Button>
+                  <Button variant="outline" onClick={onSave}><Save className="mr-2 h-4 w-4" />Salvar</Button>
+                  <Button onClick={onSavePrint}><Printer className="mr-2 h-4 w-4" />Salvar e Imprimir</Button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </section>
+    </div>
   );
 }
 
