@@ -250,6 +250,10 @@ function PdvPage() {
           setPayment={setPayment}
           responsible={responsible}
           setResponsible={setResponsible}
+          status={status}
+          setStatus={setStatus}
+          reposto={reposto}
+          setReposto={setReposto}
           notes={notes}
           setNotes={setNotes}
           onAdd={() => setShowAdd(true)}
