@@ -92,8 +92,13 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  html, body { height: 100%; }
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    height: 100%;
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
@@ -104,22 +109,54 @@
 /* Thermal receipt styling */
 .thermal {
   font-family: ui-monospace, "Courier New", monospace;
-  width: 9.5cm;
+  width: 10cm;
   background: white;
   color: black;
   padding: 12px;
   font-size: 12px;
   line-height: 1.35;
 }
-.thermal h2 { font-size: 14px; font-weight: 800; letter-spacing: 0.02em; }
-.thermal .row { display: flex; justify-content: space-between; gap: 8px; }
-.thermal .dashed { border-top: 1px dashed #000; margin: 6px 0; }
-.thermal .center { text-align: center; }
-.thermal-logo { display: block; margin: 0 auto 4px; max-width: 110px; height: auto; filter: grayscale(100%) contrast(1.2); }
+.thermal h2 {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.thermal .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.thermal .dashed {
+  border-top: 1px dashed #000;
+  margin: 6px 0;
+}
+.thermal .center {
+  text-align: center;
+}
+.thermal-logo {
+  display: block;
+  margin: 0 auto 4px;
+  max-width: 110px;
+  height: auto;
+  filter: grayscale(100%) contrast(1.2);
+}
 
-@page { size: 9.5cm auto; margin: 0; }
+@page {
+  size: 9.5cm auto;
+  margin: 0;
+}
 @media print {
-  body * { visibility: hidden !important; }
-  .print-area, .print-area * { visibility: visible !important; }
-  .print-area { position: absolute; left: 0; top: 0; width: 9.5cm; }
+  body * {
+    visibility: hidden !important;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible !important;
+  }
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 9.5cm;
+  }
 }
