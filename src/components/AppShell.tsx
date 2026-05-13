@@ -51,7 +51,7 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
   const [open, setOpen] = useState(false);
   const current = nav.find(n => n.to === loc.pathname);
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen bg-background">
       {/* Desktop sidebar */}
       <aside className="hidden w-60 shrink-0 lg:block">
         <SidebarContent pathname={loc.pathname} />
