@@ -958,8 +958,6 @@ function FinalizeStep({
   setPayment,
   responsible,
   setResponsible,
-  status,
-  setStatus,
   reposto,
   setReposto,
   notes,
@@ -975,8 +973,6 @@ function FinalizeStep({
   setPayment: (s: string) => void;
   responsible: string;
   setResponsible: (s: string) => void;
-  status: string;
-  setStatus: (s: string) => void;
   reposto: string;
   setReposto: (s: string) => void;
   notes: string;
