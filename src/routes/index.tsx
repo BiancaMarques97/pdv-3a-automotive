@@ -160,6 +160,7 @@ function PdvPage() {
           onRemove={removeItem}
           onNote={setShowNote}
           onNewCustomer={() => setShowNewCustomer(true)}
+          onTrocar={backToCustomers}
           onSave={() => saveOrder(false)}
           onSavePrint={() => saveOrder(true)}
           onExport={handleExport}
