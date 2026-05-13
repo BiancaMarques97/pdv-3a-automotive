@@ -131,6 +131,8 @@ function PdvPage() {
       payment,
       notes,
       responsible,
+      status,
+      reposto,
       createdAt: new Date().toISOString(),
     };
   };
