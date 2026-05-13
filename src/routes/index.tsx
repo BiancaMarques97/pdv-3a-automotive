@@ -628,21 +628,6 @@ function DesktopPdv({
 
               <div>
                 <Label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Responsável
-                </Label>
-                <Select value={responsible} onValueChange={setResponsible}>
-                  <SelectTrigger className="h-11">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Luiz Carlos">Luiz Carlos</SelectItem>
-                    <SelectItem value="Fábio Fonseca">Fábio Fonseca</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   Status
                 </Label>
                 <Select value={status} onValueChange={setStatus}>
@@ -656,6 +641,36 @@ function DesktopPdv({
                     <SelectItem value="Baixa OK">Baixa OK</SelectItem>
                     <SelectItem value="Estorno">Estorno</SelectItem>
                     <SelectItem value="Cancelado">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Responsável</Label>
+                <Select value={reposto} onValueChange={setReposto}>
+                  <SelectTrigger className="h-12 text-base">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CSG">CSG</SelectItem>
+                    <SelectItem value="CR">CR</SelectItem>
+                    <SelectItem value="SR">SR</SelectItem>
+                    <SelectItem value="VA">VA</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Responsável
+                </Label>
+                <Select value={responsible} onValueChange={setResponsible}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Luiz Carlos">Luiz Carlos</SelectItem>
+                    <SelectItem value="Fábio Fonseca">Fábio Fonseca</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1014,6 +1029,41 @@ function FinalizeStep({
               </SelectContent>
             </Select>
           </div>
+
+          <div>
+            <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Responsável</Label>
+            <Select value={reposto} onValueChange={setReposto}>
+              <SelectTrigger className="h-12 text-base">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="CSG">CSG</SelectItem>
+                <SelectItem value="CR">CR</SelectItem>
+                <SelectItem value="SR">SR</SelectItem>
+                <SelectItem value="VA">VA</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Status
+            </Label>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Aguardando Entrada">Aguardando Entrada</SelectItem>
+                <SelectItem value="Entregue">Entregue</SelectItem>
+                <SelectItem value="Entregue Parcialmente">Entregue Parcialmente</SelectItem>
+                <SelectItem value="Baixa OK">Baixa OK</SelectItem>
+                <SelectItem value="Estorno">Estorno</SelectItem>
+                <SelectItem value="Cancelado">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div>
             <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Responsável</Label>
             <Select value={responsible} onValueChange={setResponsible}>
@@ -1026,6 +1076,7 @@ function FinalizeStep({
               </SelectContent>
             </Select>
           </div>
+
           <div>
             <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Observações</Label>
             <Textarea
