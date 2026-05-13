@@ -117,8 +117,9 @@
 .thermal .center { text-align: center; }
 .thermal-logo { display: block; margin: 0 auto 4px; max-width: 110px; height: auto; filter: grayscale(100%) contrast(1.2); }
 
+@page { size: 9.5cm auto; margin: 0; }
 @media print {
   body * { visibility: hidden !important; }
   .print-area, .print-area * { visibility: visible !important; }
-  .print-area { position: absolute; left: 0; top: 0; }
+  .print-area { position: absolute; left: 0; top: 0; width: 9.5cm; }
 }
