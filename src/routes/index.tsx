@@ -734,6 +734,17 @@ function AddItemDialog({ open, onClose, onAdd }: { open: boolean; onClose: () =>
 
   useEffect(() => { if (open) { setCode(""); setDesc(""); setNote(""); setQty(1); setPrice(0); } }, [open]);
 
+  const submit = (keepOpen: boolean) => {
+    if (!code || !desc) { toast.error("Preencha código e produto"); return; }
+    onAdd({ id: uid(), code, description: desc, quantity: qty, sold: 0, unitPrice: price, note: note || undefined });
+    if (keepOpen) {
+      setCode(""); setDesc(""); setNote(""); setQty(1); setPrice(0);
+      toast.success("Item adicionado");
+    } else {
+      onClose();
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent>
@@ -742,7 +753,14 @@ function AddItemDialog({ open, onClose, onAdd }: { open: boolean; onClose: () =>
           <div><Label>Código</Label><Input value={code} onChange={e => setCode(e.target.value)} className="h-11" /></div>
           <div><Label>Produto</Label><Input value={desc} onChange={e => setDesc(e.target.value)} placeholder="Nome do produto" className="h-11" /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><Label>Quantidade</Label><Input type="number" min={1} value={qty} onChange={e => setQty(Number(e.target.value) || 1)} className="h-11" /></div>
+            <div>
+              <Label>Quantidade</Label>
+              <div className="flex items-center gap-2">
+                <Button type="button" size="icon" variant="outline" className="h-11 w-11" onClick={() => setQty(Math.max(1, qty - 1))}><Minus className="h-4 w-4" /></Button>
+                <Input type="number" min={1} value={qty} onChange={e => setQty(Math.max(1, Number(e.target.value) || 1))} className="h-11 text-center text-base font-bold" />
+                <Button type="button" size="icon" variant="outline" className="h-11 w-11" onClick={() => setQty(qty + 1)}><Plus className="h-4 w-4" /></Button>
+              </div>
+            </div>
             <div><Label>Valor unit. (R$)</Label><Input type="number" min={0} step="0.01" value={price} onChange={e => setPrice(Number(e.target.value) || 0)} className="h-11" /></div>
           </div>
           <div>
@@ -750,14 +768,12 @@ function AddItemDialog({ open, onClose, onAdd }: { open: boolean; onClose: () =>
             <Textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder="Anotação sobre o item..." />
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex-col gap-2 sm:flex-row">
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button
-            onClick={() => {
-              if (!code || !desc) { toast.error("Preencha código e produto"); return; }
-              onAdd({ id: uid(), code, description: desc, quantity: qty, sold: 0, unitPrice: price, note: note || undefined });
-            }}
-          >Adicionar</Button>
+          <Button variant="secondary" onClick={() => submit(true)}>
+            <Plus className="mr-1 h-4 w-4" />Adicionar e novo
+          </Button>
+          <Button onClick={() => submit(false)}>Adicionar e fechar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
