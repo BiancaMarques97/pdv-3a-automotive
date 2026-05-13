@@ -109,6 +109,35 @@ function PdvPage() {
     setStep("finalize");
   };
 
+  const buildDraftOrder = (): Order | null => {
+    if (!selected) {
+      toast.error("Selecione um cliente");
+      return null;
+    }
+    if (totals.totalQty === 0) {
+      toast.error("Informe pelo menos uma quantidade vendida");
+      return null;
+    }
+    return {
+      id: "draft",
+      number: 0,
+      customerId: selected.id,
+      customerName: selected.name,
+      items: items.map((i) => ({ ...i })),
+      total: totals.total,
+      totalQty: totals.totalQty,
+      payment,
+      notes,
+      responsible,
+      createdAt: new Date().toISOString(),
+    };
+  };
+
+  const openPrintPreview = () => {
+    const draft = buildDraftOrder();
+    if (draft) setPrintOrder(draft);
+  };
+
   const saveOrder = (alsoPrint = false): Order | undefined => {
     if (!selected) {
       toast.error("Selecione um cliente");
@@ -135,14 +164,16 @@ function PdvPage() {
     setNotes("");
     if (alsoPrint) setPrintOrder(order);
     if (!isDesktop) setStep("done");
-    else {
-      // No desktop, limpa a seleção para deixar claro que o pedido foi salvo
-      setSelected(null);
-      setItems([]);
-      setStep("customers");
-    }
     toast.success(`Pedido #${order.number} salvo`);
     return order;
+  };
+
+  const confirmPrintAndSave = () => {
+    const order = saveOrder(false);
+    if (order) {
+      setPrintOrder(order);
+      setTimeout(() => window.print(), 50);
+    }
   };
 
   const handleExport = () => {
@@ -187,7 +218,14 @@ function PdvPage() {
           setShowNote(null);
         }}
       />
-      <PrintDialog open={!!printOrder} order={printOrder} onClose={() => setPrintOrder(null)} printRef={printRef} />
+      <PrintDialog
+        open={!!printOrder}
+        order={printOrder}
+        onClose={() => setPrintOrder(null)}
+        onConfirm={confirmPrintAndSave}
+        isDraft={printOrder?.id === "draft"}
+        printRef={printRef}
+      />
     </>
   );
 
@@ -215,7 +253,7 @@ function PdvPage() {
           onNewCustomer={() => setShowNewCustomer(true)}
           onTrocar={backToCustomers}
           onSave={() => saveOrder(false)}
-          onSavePrint={() => saveOrder(true)}
+          onSavePrint={openPrintPreview}
           onExport={handleExport}
         />
         {dialogs}
@@ -261,7 +299,7 @@ function PdvPage() {
           setNotes={setNotes}
           onBack={() => setStep("items")}
           onSave={() => saveOrder(false)}
-          onSavePrint={() => saveOrder(true)}
+          onSavePrint={openPrintPreview}
           onExport={handleExport}
         />
       )}
@@ -1422,11 +1460,15 @@ function PrintDialog({
   open,
   order,
   onClose,
+  onConfirm,
+  isDraft,
   printRef,
 }: {
   open: boolean;
   order: Order | null;
   onClose: () => void;
+  onConfirm: () => void;
+  isDraft: boolean;
   printRef: React.RefObject<HTMLDivElement | null>;
 }) {
   return (
@@ -1445,9 +1487,9 @@ function PrintDialog({
           <Button variant="outline" onClick={onClose}>
             Fechar
           </Button>
-          <Button onClick={() => window.print()}>
+          <Button onClick={isDraft ? onConfirm : () => window.print()}>
             <Printer className="mr-2 h-4 w-4" />
-            Imprimir
+            {isDraft ? "Salvar e imprimir" : "Imprimir"}
           </Button>
         </DialogFooter>
       </DialogContent>
