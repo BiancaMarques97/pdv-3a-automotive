@@ -162,6 +162,8 @@ function PdvPage() {
       payment,
       notes,
       responsible,
+      status,
+      reposto,
     });
     setLastOrder(order);
     setItems(remaining);
