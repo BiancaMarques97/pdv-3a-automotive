@@ -115,7 +115,7 @@
 .thermal .row { display: flex; justify-content: space-between; gap: 8px; }
 .thermal .dashed { border-top: 1px dashed #000; margin: 6px 0; }
 .thermal .center { text-align: center; }
-.thermal-logo { display: block; margin: 0 auto 6px; max-width: 180px; height: auto; filter: grayscale(100%) contrast(1.2); }
+.thermal-logo { display: block; margin: 0 auto 4px; max-width: 110px; height: auto; filter: grayscale(100%) contrast(1.2); }
 
 @media print {
   body * { visibility: hidden !important; }
