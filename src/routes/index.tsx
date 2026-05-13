@@ -218,7 +218,14 @@ function PdvPage() {
           setShowNote(null);
         }}
       />
-      <PrintDialog open={!!printOrder} order={printOrder} onClose={() => setPrintOrder(null)} printRef={printRef} />
+      <PrintDialog
+        open={!!printOrder}
+        order={printOrder}
+        onClose={() => setPrintOrder(null)}
+        onConfirm={confirmPrintAndSave}
+        isDraft={printOrder?.id === "draft"}
+        printRef={printRef}
+      />
     </>
   );
 
