@@ -64,6 +64,8 @@ function PdvPage() {
   const [payment, setPayment] = useState("Dinheiro");
   const [notes, setNotes] = useState("");
   const [responsible, setResponsible] = useState("Luiz Carlos");
+  const [status, setStatus] = useState("Aguardando Entrada");
+  const [reposto, setReposto] = useState("CSG");
   const [showAdd, setShowAdd] = useState(false);
   const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [showNote, setShowNote] = useState<string | null>(null);
