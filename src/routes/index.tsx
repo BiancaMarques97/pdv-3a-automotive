@@ -643,6 +643,25 @@ function DesktopPdv({
 
               <div>
                 <Label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Status
+                </Label>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Aguardando Entrada">Aguardando Entrada</SelectItem>
+                    <SelectItem value="Entregue">Entregue</SelectItem>
+                    <SelectItem value="Entregue Parcialmente">Entregue Parcialmente</SelectItem>
+                    <SelectItem value="Baixa OK">Baixa OK</SelectItem>
+                    <SelectItem value="Estorno">Estorno</SelectItem>
+                    <SelectItem value="Cancelado">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   Observações
                 </Label>
                 <Textarea
