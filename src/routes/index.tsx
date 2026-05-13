@@ -1460,11 +1460,15 @@ function PrintDialog({
   open,
   order,
   onClose,
+  onConfirm,
+  isDraft,
   printRef,
 }: {
   open: boolean;
   order: Order | null;
   onClose: () => void;
+  onConfirm: () => void;
+  isDraft: boolean;
   printRef: React.RefObject<HTMLDivElement | null>;
 }) {
   return (
@@ -1483,9 +1487,9 @@ function PrintDialog({
           <Button variant="outline" onClick={onClose}>
             Fechar
           </Button>
-          <Button onClick={() => window.print()}>
+          <Button onClick={isDraft ? onConfirm : () => window.print()}>
             <Printer className="mr-2 h-4 w-4" />
-            Imprimir
+            {isDraft ? "Salvar e imprimir" : "Imprimir"}
           </Button>
         </DialogFooter>
       </DialogContent>
