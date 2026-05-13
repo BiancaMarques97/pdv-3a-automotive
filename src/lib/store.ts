@@ -28,6 +28,8 @@ export type Order = {
   payment: string;
   notes: string;
   responsible: string;
+  status?: string;
+  reposto?: string;
   createdAt: string;
 };
 
