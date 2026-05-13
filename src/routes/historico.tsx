@@ -32,12 +32,10 @@ function HistoricoPage() {
 
   return (
     <AppShell>
-      <div className="p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Histórico de Pedidos</h1>
-            <p className="text-muted-foreground">Pesquisa rápida e reimpressão de comprovantes</p>
-          </div>
+      <div className="p-4 sm:p-6">
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold sm:text-3xl">Histórico de Pedidos</h1>
+          <p className="text-sm text-muted-foreground">Pesquisa rápida e reimpressão de comprovantes</p>
         </div>
 
         <div className="relative mb-4 max-w-xl">
@@ -50,7 +48,45 @@ function HistoricoPage() {
           />
         </div>
 
-        <div className="overflow-hidden rounded-lg border bg-surface">
+        {/* Mobile / Tablet: cards */}
+        <div className="space-y-3 lg:hidden">
+          {filtered.map(o => (
+            <div key={o.id} className="rounded-xl border bg-surface p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs text-muted-foreground">#{o.number}</span>
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] uppercase tracking-wide text-muted-foreground">{o.payment}</span>
+                  </div>
+                  <div className="mt-0.5 truncate text-base font-semibold">{o.customerName}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    {new Date(o.createdAt).toLocaleString("pt-BR")} · {o.responsible}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[11px] uppercase text-muted-foreground">{o.totalQty} itens</div>
+                  <div className="text-lg font-extrabold text-primary">{fmtBRL(o.total)}</div>
+                </div>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <Button size="sm" variant="outline" className="flex-1" onClick={() => setOpen(o)}>
+                  <ReceiptText className="mr-1 h-4 w-4" />Ver
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => exportOrderXLS(o)}>
+                  <FileSpreadsheet className="mr-1 h-4 w-4" />Excel
+                </Button>
+              </div>
+            </div>
+          ))}
+          {filtered.length === 0 && (
+            <div className="rounded-xl border border-dashed bg-surface p-10 text-center text-sm text-muted-foreground">
+              Nenhum pedido encontrado
+            </div>
+          )}
+        </div>
+
+        {/* Desktop: table */}
+        <div className="hidden overflow-hidden rounded-lg border bg-surface lg:block">
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
