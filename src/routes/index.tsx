@@ -970,10 +970,19 @@ function FinalizeStep({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                <SelectItem value="Pix">Pix</SelectItem>
-                <SelectItem value="Cartão Débito">Cartão Débito</SelectItem>
-                <SelectItem value="Cartão Crédito">Cartão Crédito</SelectItem>
-                <SelectItem value="A Prazo">A Prazo</SelectItem>
+                <SelectItem value="Deposito Bancario">Deposito Bancário</SelectItem>
+                <SelectItem value="Boleto">Boleto</SelectItem>
+                <SelectItem value="Cheque">Cheque</SelectItem>
+                <SelectItem value="Consignado">Consignado</SelectItem>
+                <SelectItem value="PagSeguroF">PagSeguroF</SelectItem>
+                <SelectItem value="PagSeguroL">PagSeguroL</SelectItem>
+                <SelectItem value="PagSeguro3A">PagSeguro3A</SelectItem>
+                <SelectItem value="Infinit Pay">Infinit Pay</SelectItem>
+                <SelectItem value="PIX 3A">PIX 3A</SelectItem>
+                <SelectItem value="Cartao Debito">Cartao Debito</SelectItem>
+                <SelectItem value="Cartao Credito">Cartao Credito</SelectItem>
+                <SelectItem value="PIX L">PIX L</SelectItem>
+                <SelectItem value="PIX F">PIX F</SelectItem>
               </SelectContent>
             </Select>
           </div>
