@@ -521,7 +521,7 @@ function ItemsStep({
       </div>
 
       {/* Cards list */}
-      <div className="flex-1 overflow-auto px-4 pb-36 pt-3 sm:px-6">
+      <div className="min-h-0 flex-1 overflow-auto px-4 pb-4 pt-3 sm:px-6">
         <div className="mx-auto max-w-3xl space-y-3">
           {items.length === 0 && (
             <div className="rounded-xl border border-dashed bg-surface p-10 text-center text-sm text-muted-foreground">
