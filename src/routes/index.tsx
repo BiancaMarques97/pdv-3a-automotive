@@ -109,6 +109,35 @@ function PdvPage() {
     setStep("finalize");
   };
 
+  const buildDraftOrder = (): Order | null => {
+    if (!selected) {
+      toast.error("Selecione um cliente");
+      return null;
+    }
+    if (totals.totalQty === 0) {
+      toast.error("Informe pelo menos uma quantidade vendida");
+      return null;
+    }
+    return {
+      id: "draft",
+      number: 0,
+      customerId: selected.id,
+      customerName: selected.name,
+      items: items.map((i) => ({ ...i })),
+      total: totals.total,
+      totalQty: totals.totalQty,
+      payment,
+      notes,
+      responsible,
+      createdAt: new Date().toISOString(),
+    };
+  };
+
+  const openPrintPreview = () => {
+    const draft = buildDraftOrder();
+    if (draft) setPrintOrder(draft);
+  };
+
   const saveOrder = (alsoPrint = false): Order | undefined => {
     if (!selected) {
       toast.error("Selecione um cliente");
@@ -135,14 +164,16 @@ function PdvPage() {
     setNotes("");
     if (alsoPrint) setPrintOrder(order);
     if (!isDesktop) setStep("done");
-    else {
-      // No desktop, limpa a seleção para deixar claro que o pedido foi salvo
-      setSelected(null);
-      setItems([]);
-      setStep("customers");
-    }
     toast.success(`Pedido #${order.number} salvo`);
     return order;
+  };
+
+  const confirmPrintAndSave = () => {
+    const order = saveOrder(false);
+    if (order) {
+      setPrintOrder(order);
+      setTimeout(() => window.print(), 50);
+    }
   };
 
   const handleExport = () => {
