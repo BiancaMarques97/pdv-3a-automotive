@@ -253,7 +253,7 @@ function PdvPage() {
           onNewCustomer={() => setShowNewCustomer(true)}
           onTrocar={backToCustomers}
           onSave={() => saveOrder(false)}
-          onSavePrint={() => saveOrder(true)}
+          onSavePrint={openPrintPreview}
           onExport={handleExport}
         />
         {dialogs}
