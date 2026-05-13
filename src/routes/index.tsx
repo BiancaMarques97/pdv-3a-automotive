@@ -299,7 +299,7 @@ function PdvPage() {
           setNotes={setNotes}
           onBack={() => setStep("items")}
           onSave={() => saveOrder(false)}
-          onSavePrint={() => saveOrder(true)}
+          onSavePrint={openPrintPreview}
           onExport={handleExport}
         />
       )}
