@@ -341,6 +341,10 @@ function DesktopPdv({
   setPayment,
   responsible,
   setResponsible,
+  status,
+  setStatus,
+  reposto,
+  setReposto,
   notes,
   setNotes,
   onAdd,
@@ -364,6 +368,10 @@ function DesktopPdv({
   setPayment: (s: string) => void;
   responsible: string;
   setResponsible: (s: string) => void;
+  status: string;
+  setStatus: (s: string) => void;
+  reposto: string;
+  setReposto: (s: string) => void;
   notes: string;
   setNotes: (s: string) => void;
   onAdd: () => void;
