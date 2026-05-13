@@ -1,12 +1,11 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
 import logo from "@/assets/logo-3a.png";
-import { LayoutDashboard, ShoppingCart, History, Menu } from "lucide-react";
+import { ShoppingCart, History, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const nav = [
   { to: "/", label: "PDV", icon: ShoppingCart },
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/historico", label: "Histórico", icon: History },
 ];
 
