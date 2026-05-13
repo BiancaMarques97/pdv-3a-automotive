@@ -542,7 +542,7 @@ function DesktopPdv({
         {/* Right: order summary */}
         <aside className="flex min-h-0 flex-col overflow-hidden rounded-lg border bg-surface">
           <div className="flex flex-1 flex-col overflow-auto">
-            <div className="bg-foreground px-5 py-4 text-background">
+            <div className="bg-sidebar px-5 py-4 text-background">
               <div className="text-[11px] font-bold uppercase tracking-wider opacity-70">Resumo do Pedido</div>
               <div className="mt-3 flex items-baseline justify-between">
                 <span className="text-sm">Itens</span>
