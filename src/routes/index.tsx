@@ -644,7 +644,7 @@ function FinalizeStep({
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto px-4 pb-36 pt-4 sm:px-6">
+      <div className="min-h-0 flex-1 overflow-auto px-4 pb-4 pt-4 sm:px-6">
         <div className="mx-auto max-w-2xl space-y-4">
           <div>
             <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Pagamento</Label>
