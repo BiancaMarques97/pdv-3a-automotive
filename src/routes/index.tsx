@@ -64,7 +64,6 @@ function PdvPage() {
   const [payment, setPayment] = useState("Dinheiro");
   const [notes, setNotes] = useState("");
   const [responsible, setResponsible] = useState("Luiz Carlos");
-  const [status, setStatus] = useState("Aguardando Entrada");
   const [reposto, setReposto] = useState("CSG");
   const [showAdd, setShowAdd] = useState(false);
   const [showNewCustomer, setShowNewCustomer] = useState(false);
@@ -131,7 +130,6 @@ function PdvPage() {
       payment,
       notes,
       responsible,
-      status,
       reposto,
       createdAt: new Date().toISOString(),
     };
@@ -162,7 +160,6 @@ function PdvPage() {
       payment,
       notes,
       responsible,
-      status,
       reposto,
     });
     setLastOrder(order);
@@ -250,8 +247,6 @@ function PdvPage() {
           setPayment={setPayment}
           responsible={responsible}
           setResponsible={setResponsible}
-          status={status}
-          setStatus={setStatus}
           reposto={reposto}
           setReposto={setReposto}
           notes={notes}
@@ -305,8 +300,6 @@ function PdvPage() {
           setPayment={setPayment}
           responsible={responsible}
           setResponsible={setResponsible}
-          status={status}
-          setStatus={setStatus}
           reposto={reposto}
           setReposto={setReposto}
           notes={notes}
@@ -341,8 +334,6 @@ function DesktopPdv({
   setPayment,
   responsible,
   setResponsible,
-  status,
-  setStatus,
   reposto,
   setReposto,
   notes,
@@ -368,8 +359,6 @@ function DesktopPdv({
   setPayment: (s: string) => void;
   responsible: string;
   setResponsible: (s: string) => void;
-  status: string;
-  setStatus: (s: string) => void;
   reposto: string;
   setReposto: (s: string) => void;
   notes: string;
@@ -537,7 +526,6 @@ function DesktopPdv({
                     <tr>
                       <th className="px-4 py-2.5 text-left">Código</th>
                       <th className="px-4 py-2.5 text-left">Descrição</th>
-                      <th className="px-4 py-2.5 text-center w-16">Qtd</th>
                       <th className="px-4 py-2.5 text-center w-24">Vendida</th>
                       <th className="px-4 py-2.5 text-right w-24">Unit.</th>
                       <th className="px-4 py-2.5 text-right w-28">Subtotal</th>
@@ -547,7 +535,7 @@ function DesktopPdv({
                   <tbody className="divide-y">
                     {items.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                        <td colSpan={6} className="p-8 text-center text-muted-foreground">
                           Sem itens consignados.
                         </td>
                       </tr>
@@ -559,15 +547,13 @@ function DesktopPdv({
                           <div className="font-medium">{i.description}</div>
                           {i.note && <div className="text-xs italic text-muted-foreground">obs: {i.note}</div>}
                         </td>
-                        <td className="px-4 py-3 text-center">{i.quantity}</td>
                         <td className="px-4 py-3 text-center">
                           <Input
                             type="number"
                             min={0}
-                            max={i.quantity}
                             value={i.sold}
                             onChange={(e) =>
-                              onUpdate(i.id, { sold: Math.max(0, Math.min(i.quantity, Number(e.target.value) || 0)) })
+                              onUpdate(i.id, { sold: Math.max(0, Number(e.target.value) || 0) })
                             }
                             className="mx-auto h-9 w-16 text-center"
                           />
@@ -649,35 +635,16 @@ function DesktopPdv({
               </div>
 
               <div>
-                <Label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Status
-                </Label>
-                <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger className="h-11">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Aguardando Entrada">Aguardando Entrada</SelectItem>
-                    <SelectItem value="Entregue">Entregue</SelectItem>
-                    <SelectItem value="Entregue Parcialmente">Entregue Parcialmente</SelectItem>
-                    <SelectItem value="Baixa OK">Baixa OK</SelectItem>
-                    <SelectItem value="Estorno">Estorno</SelectItem>
-                    <SelectItem value="Cancelado">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
                 <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Reposto</Label>
                 <Select value={reposto} onValueChange={setReposto}>
                   <SelectTrigger className="h-12 text-base">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="CSG">CSG</SelectItem>
-                    <SelectItem value="CR">CR</SelectItem>
-                    <SelectItem value="SR">SR</SelectItem>
-                    <SelectItem value="VA">VA</SelectItem>
+                    <SelectItem value="CSG">CSG - CONSIGNADO</SelectItem>
+                    <SelectItem value="CR">CR - COM REPOSIÇÃO</SelectItem>
+                    <SelectItem value="SR">SR - SEM REPOSIÇÃO</SelectItem>
+                    <SelectItem value="VA">VA - VENDA AVULSA</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
