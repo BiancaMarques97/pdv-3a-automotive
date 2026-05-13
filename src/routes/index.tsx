@@ -64,6 +64,8 @@ function PdvPage() {
   const [payment, setPayment] = useState("Dinheiro");
   const [notes, setNotes] = useState("");
   const [responsible, setResponsible] = useState("Luiz Carlos");
+  const [status, setStatus] = useState("Aguardando Entrada");
+  const [reposto, setReposto] = useState("CSG");
   const [showAdd, setShowAdd] = useState(false);
   const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [showNote, setShowNote] = useState<string | null>(null);
@@ -129,6 +131,8 @@ function PdvPage() {
       payment,
       notes,
       responsible,
+      status,
+      reposto,
       createdAt: new Date().toISOString(),
     };
   };
@@ -158,6 +162,8 @@ function PdvPage() {
       payment,
       notes,
       responsible,
+      status,
+      reposto,
     });
     setLastOrder(order);
     setItems(remaining);
@@ -244,6 +250,10 @@ function PdvPage() {
           setPayment={setPayment}
           responsible={responsible}
           setResponsible={setResponsible}
+          status={status}
+          setStatus={setStatus}
+          reposto={reposto}
+          setReposto={setReposto}
           notes={notes}
           setNotes={setNotes}
           onAdd={() => setShowAdd(true)}
@@ -295,6 +305,10 @@ function PdvPage() {
           setPayment={setPayment}
           responsible={responsible}
           setResponsible={setResponsible}
+          status={status}
+          setStatus={setStatus}
+          reposto={reposto}
+          setReposto={setReposto}
           notes={notes}
           setNotes={setNotes}
           onBack={() => setStep("items")}
@@ -327,6 +341,10 @@ function DesktopPdv({
   setPayment,
   responsible,
   setResponsible,
+  status,
+  setStatus,
+  reposto,
+  setReposto,
   notes,
   setNotes,
   onAdd,
@@ -350,6 +368,10 @@ function DesktopPdv({
   setPayment: (s: string) => void;
   responsible: string;
   setResponsible: (s: string) => void;
+  status: string;
+  setStatus: (s: string) => void;
+  reposto: string;
+  setReposto: (s: string) => void;
   notes: string;
   setNotes: (s: string) => void;
   onAdd: () => void;
@@ -646,7 +668,7 @@ function DesktopPdv({
               </div>
 
               <div>
-                <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Responsável</Label>
+                <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Reposto</Label>
                 <Select value={reposto} onValueChange={setReposto}>
                   <SelectTrigger className="h-12 text-base">
                     <SelectValue />
@@ -969,6 +991,10 @@ function FinalizeStep({
   setPayment,
   responsible,
   setResponsible,
+  status,
+  setStatus,
+  reposto,
+  setReposto,
   notes,
   setNotes,
   onBack,
@@ -982,6 +1008,10 @@ function FinalizeStep({
   setPayment: (s: string) => void;
   responsible: string;
   setResponsible: (s: string) => void;
+  status: string;
+  setStatus: (s: string) => void;
+  reposto: string;
+  setReposto: (s: string) => void;
   notes: string;
   setNotes: (s: string) => void;
   onBack: () => void;
@@ -1031,7 +1061,7 @@ function FinalizeStep({
           </div>
 
           <div>
-            <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Responsável</Label>
+            <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Reposto</Label>
             <Select value={reposto} onValueChange={setReposto}>
               <SelectTrigger className="h-12 text-base">
                 <SelectValue />
