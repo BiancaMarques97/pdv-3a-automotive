@@ -828,9 +828,9 @@ function ItemCard({
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-        <div className="text-muted-foreground">
+        {/* <div className="text-muted-foreground">
           Disponível: <span className="font-semibold text-foreground">{item.quantity}</span>
-        </div>
+        </div> */}
         <div className="text-muted-foreground">
           Unit.: <span className="font-semibold text-foreground">{fmtBRL(item.unitPrice)}</span>
         </div>

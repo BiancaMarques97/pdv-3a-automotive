@@ -11,7 +11,6 @@ export type ConsignedItem = {
   id: string;
   code: string;
   description: string;
-  quantity: number; // disponivel em consignação
   sold: number;
   unitPrice: number;
   note?: string;
