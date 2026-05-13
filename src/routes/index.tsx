@@ -668,7 +668,7 @@ function DesktopPdv({
               </div>
 
               <div>
-                <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Responsável</Label>
+                <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Reposto</Label>
                 <Select value={reposto} onValueChange={setReposto}>
                   <SelectTrigger className="h-12 text-base">
                     <SelectValue />
