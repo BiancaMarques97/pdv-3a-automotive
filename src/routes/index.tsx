@@ -280,42 +280,49 @@ function DesktopPdv({
       {/* 3-col grid */}
       <div className="grid min-h-0 flex-1 grid-cols-[280px_1fr_340px] gap-4 p-4">
         {/* Customers column */}
-        <aside className="flex min-h-0 flex-col overflow-hidden rounded-lg border bg-surface">
-          <div className="flex items-center justify-between border-b px-4 py-3">
-            <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Clientes</div>
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-              {results.length}
-            </span>
+        <aside className="flex min-h-0 flex-col gap-3">
+          <div className="flex items-center justify-between px-1">
+            <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Clientes
+              <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                {results.length}
+              </span>
+            </div>
+            <Button variant="outline" size="sm" className="h-9" onClick={onNewCustomer}>
+              <Plus className="mr-1 h-4 w-4" />Novo
+            </Button>
           </div>
-          <div className="flex-1 overflow-auto p-2">
+          <div className="flex-1 space-y-2 overflow-auto pr-1 pb-2">
+            {results.length === 0 && (
+              <div className="rounded-xl border border-dashed bg-surface p-6 text-center text-xs text-muted-foreground">
+                Nenhum cliente
+              </div>
+            )}
             {results.map(c => {
               const active = selected?.id === c.id;
               return (
                 <button
                   key={c.id}
                   onClick={() => onPick(c)}
-                  className={`mb-1 flex w-full flex-col gap-0.5 rounded-md px-3 py-2.5 text-left transition ${
-                    active ? "bg-accent" : "hover:bg-muted"
+                  className={`flex w-full items-center gap-3 rounded-xl border bg-surface px-3 py-3 text-left shadow-sm transition active:scale-[0.99] hover:border-primary/40 hover:shadow ${
+                    active ? "border-primary ring-1 ring-primary" : ""
                   }`}
                 >
-                  <div className="truncate text-sm font-bold">{c.name}</div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Phone className="h-3 w-3" />{c.phone}
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${active ? "bg-primary text-primary-foreground" : "bg-accent text-primary"}`}>
+                    <User className="h-5 w-5" />
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <MapPin className="h-3 w-3" />{c.city}
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-semibold">{c.name}</div>
+                    <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                      <Phone className="h-3 w-3 shrink-0" /><span className="truncate">{c.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{c.city}</span>
+                    </div>
                   </div>
                 </button>
               );
             })}
-            {results.length === 0 && (
-              <div className="p-6 text-center text-xs text-muted-foreground">Nenhum cliente</div>
-            )}
-          </div>
-          <div className="border-t p-2">
-            <Button variant="outline" size="sm" className="w-full" onClick={onNewCustomer}>
-              <Plus className="mr-1 h-4 w-4" />Novo cliente
-            </Button>
           </div>
         </aside>
 
