@@ -32,7 +32,7 @@ function HistoricoPage() {
 
   return (
     <AppShell>
-      <div className="p-4 sm:p-6">
+      <div className="h-full overflow-auto p-4 sm:p-6">
         <div className="mb-4">
           <h1 className="text-2xl font-bold sm:text-3xl">Histórico de Pedidos</h1>
           <p className="text-sm text-muted-foreground">Pesquisa rápida e reimpressão de comprovantes</p>
