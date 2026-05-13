@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import type { Order } from "@/lib/store";
 import { fmtBRL } from "@/lib/store";
+import logoMono from "@/assets/logo-3a-mono.png";
 
 export const ThermalReceipt = forwardRef<HTMLDivElement, { order: Order }>(
   function ThermalReceipt({ order }, ref) {
@@ -8,6 +9,7 @@ export const ThermalReceipt = forwardRef<HTMLDivElement, { order: Order }>(
     return (
       <div ref={ref} className="thermal print-area">
         <div className="center">
+          <img src={logoMono} alt="3A Automotive" className="thermal-logo" />
           <h2>3A AUTOMOTIVE</h2>
           <div>Auto Peças e Acessórios</div>
           <div>CNPJ 00.000.000/0001-00</div>
