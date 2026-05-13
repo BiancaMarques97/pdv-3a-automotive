@@ -30,7 +30,7 @@ function Dashboard() {
 
   return (
     <AppShell>
-      <div className="p-8">
+      <div className="h-full overflow-auto p-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground">Visão geral da operação</p>
 
