@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Search, Plus, Trash2, Printer, Save, FileSpreadsheet, MapPin, Phone,
-  User, Package, ReceiptText, MessageSquarePlus, X,
+  User, Package, ReceiptText, MessageSquarePlus, ArrowLeft, Minus, ChevronRight, CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -29,7 +30,10 @@ export const Route = createFileRoute("/")({
   component: PdvPage,
 });
 
+type Step = "customers" | "items" | "finalize" | "done";
+
 function PdvPage() {
+  const [step, setStep] = useState<Step>("customers");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Customer[]>(() => customersAPI.list());
   const [selected, setSelected] = useState<Customer | null>(null);
@@ -41,7 +45,7 @@ function PdvPage() {
   const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [showNote, setShowNote] = useState<string | null>(null);
   const [printOrder, setPrintOrder] = useState<Order | null>(null);
-  const [history, setHistory] = useState<Order[]>([]);
+  const [lastOrder, setLastOrder] = useState<Order | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,13 +54,8 @@ function PdvPage() {
   }, [query]);
 
   useEffect(() => {
-    if (selected) {
-      setItems(consignedAPI.forCustomer(selected.id));
-      setHistory(ordersAPI.list().filter(o => o.customerId === selected.id).slice(0, 5));
-    } else {
-      setItems([]);
-      setHistory([]);
-    }
+    if (selected) setItems(consignedAPI.forCustomer(selected.id));
+    else setItems([]);
   }, [selected]);
 
   const totals = useMemo(() => {
@@ -65,15 +64,21 @@ function PdvPage() {
     return { totalQty, total };
   }, [items]);
 
-  const updateItem = (id: string, patch: Partial<ConsignedItem>) => {
+  const updateItem = (id: string, patch: Partial<ConsignedItem>) =>
     setItems(prev => prev.map(i => i.id === id ? { ...i, ...patch } : i));
-  };
   const removeItem = (id: string) => setItems(prev => prev.filter(i => i.id !== id));
 
-  const saveOrder = (alsoPrint = false) => {
+  const pickCustomer = (c: Customer) => { setSelected(c); setStep("items"); };
+  const backToCustomers = () => { setSelected(null); setStep("customers"); };
+
+  const goFinalize = () => {
+    if (totals.totalQty === 0) { toast.error("Informe pelo menos uma quantidade vendida"); return; }
+    setStep("finalize");
+  };
+
+  const saveOrder = (alsoPrint = false): Order | undefined => {
     if (!selected) { toast.error("Selecione um cliente"); return; }
     if (totals.totalQty === 0) { toast.error("Informe pelo menos uma quantidade vendida"); return; }
-    // persist remaining consignment
     const remaining = items.map(i => ({ ...i, quantity: Math.max(0, i.quantity - i.sold), sold: 0, note: "" }));
     consignedAPI.saveForCustomer(selected.id, remaining);
     const order = ordersAPI.create({
@@ -82,18 +87,14 @@ function PdvPage() {
       items: items.map(i => ({ ...i })),
       total: totals.total,
       totalQty: totals.totalQty,
-      payment,
-      notes,
-      responsible,
+      payment, notes, responsible,
     });
-    toast.success(`Pedido #${order.number} salvo`);
+    setLastOrder(order);
+    setItems(remaining);
+    setNotes("");
     if (alsoPrint) setPrintOrder(order);
-    else {
-      // refresh
-      setItems(remaining);
-      setHistory(ordersAPI.list().filter(o => o.customerId === selected.id).slice(0, 5));
-      setNotes("");
-    }
+    setStep("done");
+    toast.success(`Pedido #${order.number} salvo`);
     return order;
   };
 
@@ -102,231 +103,63 @@ function PdvPage() {
     if (o) exportOrderXLS(o);
   };
 
+  const newOrder = () => {
+    setSelected(null); setItems([]); setLastOrder(null); setNotes(""); setStep("customers");
+  };
+
+  const titles: Record<Step, string> = {
+    customers: "Clientes",
+    items: selected?.name ?? "Itens",
+    finalize: "Finalizar Pedido",
+    done: "Pedido Finalizado",
+  };
+
   return (
-    <AppShell>
-      <div className="grid h-screen grid-cols-1 grid-rows-[auto_1fr] gap-0">
-        {/* Top bar */}
-        <header className="flex items-center gap-4 border-b bg-surface px-6 py-4">
-          <div className="relative flex-1 max-w-2xl">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              autoFocus
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              placeholder="Buscar cliente por nome, telefone ou cidade..."
-              className="h-12 pl-11 text-base"
-            />
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}
-          </div>
-        </header>
+    <AppShell title={titles[step]}>
+      {step === "customers" && (
+        <CustomersStep
+          query={query} setQuery={setQuery}
+          results={results}
+          onPick={pickCustomer}
+          onNew={() => setShowNewCustomer(true)}
+        />
+      )}
 
-        {/* Body grid */}
-        <div className="grid grid-cols-12 gap-4 overflow-hidden p-4">
-          {/* Customers list */}
-          <section className="col-span-12 flex flex-col overflow-hidden rounded-lg border bg-surface lg:col-span-3">
-            <div className="flex items-center justify-between border-b px-4 py-3">
-              <div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Clientes</div>
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{results.length}</span>
-                <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => setShowNewCustomer(true)} title="Novo cliente">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="flex-1 overflow-auto">
-              {results.length === 0 ? (
-                <div className="p-6 text-center text-sm text-muted-foreground">Nenhum cliente encontrado</div>
-              ) : results.map(c => (
-                <button
-                  key={c.id}
-                  onClick={() => setSelected(c)}
-                  className={`flex w-full flex-col gap-0.5 border-b px-4 py-3 text-left transition-colors hover:bg-accent/50 ${
-                    selected?.id === c.id ? "bg-accent" : ""
-                  }`}
-                >
-                  <div className="font-semibold text-foreground">{c.name}</div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <MapPin className="h-3 w-3" />{c.city}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
+      {step === "items" && selected && (
+        <ItemsStep
+          customer={selected}
+          items={items}
+          totals={totals}
+          onBack={backToCustomers}
+          onAdd={() => setShowAdd(true)}
+          onUpdate={updateItem}
+          onRemove={removeItem}
+          onNote={setShowNote}
+          onContinue={goFinalize}
+        />
+      )}
 
-          {/* Center - items */}
-          <section className="col-span-12 flex flex-col overflow-hidden rounded-lg border bg-surface lg:col-span-6">
-            {!selected ? (
-              <EmptyState />
-            ) : (
-              <>
-                <div className="border-b px-5 py-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="text-xs font-medium uppercase text-muted-foreground">Cliente selecionado</div>
-                      <h2 className="mt-0.5 text-2xl font-bold">{selected.name}</h2>
-                      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5" />{selected.phone}</span>
-                        <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{selected.city}</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => setSelected(null)}>
-                      <X className="mr-1 h-4 w-4" />Trocar
-                    </Button>
-                  </div>
-                  {history.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="text-xs font-medium text-muted-foreground">Últimos pedidos:</span>
-                      {history.map(h => (
-                        <button
-                          key={h.id}
-                          onClick={() => setPrintOrder(h)}
-                          className="rounded-md bg-muted px-2 py-0.5 text-xs hover:bg-accent"
-                        >
-                          #{h.number} · {fmtBRL(h.total)}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+      {step === "finalize" && selected && (
+        <FinalizeStep
+          customer={selected}
+          totals={totals}
+          payment={payment} setPayment={setPayment}
+          responsible={responsible} setResponsible={setResponsible}
+          notes={notes} setNotes={setNotes}
+          onBack={() => setStep("items")}
+          onSave={() => saveOrder(false)}
+          onSavePrint={() => saveOrder(true)}
+          onExport={handleExport}
+        />
+      )}
 
-                <div className="flex items-center justify-between border-b bg-muted/40 px-5 py-2.5">
-                  <div className="flex items-center gap-2 text-sm font-semibold">
-                    <Package className="h-4 w-4 text-primary" />
-                    Itens Consignados
-                    <span className="rounded-full bg-surface px-2 py-0.5 text-xs text-muted-foreground">{items.length}</span>
-                  </div>
-                  <Button size="sm" onClick={() => setShowAdd(true)}>
-                    <Plus className="mr-1 h-4 w-4" />Adicionar item
-                  </Button>
-                </div>
-
-                <div className="flex-1 overflow-auto">
-                  {items.length === 0 ? (
-                    <div className="p-10 text-center text-sm text-muted-foreground">
-                      Sem itens consignados. Adicione um item para começar o pedido.
-                    </div>
-                  ) : (
-                    <table className="w-full text-sm">
-                      <thead className="sticky top-0 bg-surface text-xs uppercase text-muted-foreground">
-                        <tr className="border-b">
-                          <th className="px-3 py-2 text-left font-semibold">Código</th>
-                          <th className="px-3 py-2 text-left font-semibold">Produto</th>
-                          <th className="px-2 py-2 text-center font-semibold">Qtd</th>
-                          <th className="px-2 py-2 text-center font-semibold">Vendida</th>
-                          <th className="px-2 py-2 text-right font-semibold">Unit.</th>
-                          <th className="px-2 py-2 text-right font-semibold">Subtotal</th>
-                          <th className="px-2 py-2 text-center font-semibold w-24">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {items.map(i => (
-                          <tr key={i.id} className="border-b hover:bg-muted/30">
-                            <td className="px-3 py-3 font-mono text-xs">{i.code}</td>
-                            <td className="px-3 py-3">
-                              <div className="font-medium">{i.description}</div>
-                              {i.note && <div className="mt-0.5 text-xs italic text-muted-foreground">obs: {i.note}</div>}
-                            </td>
-                            <td className="px-2 py-3 text-center font-semibold">{i.quantity}</td>
-                            <td className="px-2 py-3 text-center">
-                              <Input
-                                type="number"
-                                min={0}
-                                max={i.quantity}
-                                value={i.sold}
-                                onChange={e => {
-                                  const v = Math.max(0, Math.min(i.quantity, Number(e.target.value) || 0));
-                                  updateItem(i.id, { sold: v });
-                                }}
-                                className="mx-auto h-9 w-20 text-center font-semibold"
-                              />
-                            </td>
-                            <td className="px-2 py-3 text-right">{fmtBRL(i.unitPrice)}</td>
-                            <td className="px-2 py-3 text-right font-bold text-primary">
-                              {fmtBRL(i.sold * i.unitPrice)}
-                            </td>
-                            <td className="px-2 py-3">
-                              <div className="flex items-center justify-center gap-1">
-                                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setShowNote(i.id)} title="Observação">
-                                  <MessageSquarePlus className="h-4 w-4" />
-                                </Button>
-                                <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => removeItem(i.id)} title="Remover">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              </>
-            )}
-          </section>
-
-          {/* Right summary */}
-          <aside className="col-span-12 flex flex-col overflow-hidden rounded-lg border bg-surface lg:col-span-3">
-            <div className="border-b bg-secondary px-5 py-4 text-secondary-foreground">
-              <div className="text-xs uppercase tracking-wider opacity-70">Resumo do Pedido</div>
-              <div className="mt-1 flex items-baseline justify-between">
-                <span className="text-sm">Itens</span>
-                <span className="text-2xl font-bold">{totals.totalQty}</span>
-              </div>
-              <div className="mt-1 flex items-baseline justify-between">
-                <span className="text-sm">Total</span>
-                <span className="text-3xl font-extrabold text-primary">{fmtBRL(totals.total)}</span>
-              </div>
-            </div>
-
-            <div className="flex-1 space-y-4 overflow-auto p-5">
-              <div>
-                <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Pagamento</Label>
-                <Select value={payment} onValueChange={setPayment}>
-                  <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                    <SelectItem value="Pix">Pix</SelectItem>
-                    <SelectItem value="Cartão Débito">Cartão Débito</SelectItem>
-                    <SelectItem value="Cartão Crédito">Cartão Crédito</SelectItem>
-                    <SelectItem value="A Prazo">A Prazo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Responsável</Label>
-                <Select value={responsible} onValueChange={setResponsible}>
-                  <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Luiz Carlos">Luiz Carlos</SelectItem>
-                    <SelectItem value="Fábio Fonseca">Fábio Fonseca</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Observações</Label>
-                <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Notas do pedido..." />
-              </div>
-            </div>
-
-            <div className="space-y-2 border-t bg-muted/30 p-4">
-              <Button className="h-12 w-full text-base font-semibold" onClick={() => saveOrder(false)}>
-                <Save className="mr-2 h-5 w-5" />Salvar Pedido
-              </Button>
-              <Button variant="secondary" className="h-12 w-full text-base font-semibold" onClick={() => saveOrder(true)}>
-                <Printer className="mr-2 h-5 w-5" />Imprimir Canhoto
-              </Button>
-              <Button variant="outline" className="h-12 w-full text-base font-semibold" onClick={handleExport}>
-                <FileSpreadsheet className="mr-2 h-5 w-5" />Exportar Excel
-              </Button>
-            </div>
-          </aside>
-        </div>
-      </div>
+      {step === "done" && lastOrder && (
+        <DoneStep
+          order={lastOrder}
+          onReprint={() => setPrintOrder(lastOrder)}
+          onNew={newOrder}
+        />
+      )}
 
       <AddItemDialog
         open={showAdd}
@@ -339,7 +172,7 @@ function PdvPage() {
         onCreated={(customer) => {
           setShowNewCustomer(false);
           setResults(customersAPI.list());
-          setSelected(customer);
+          pickCustomer(customer);
           toast.success(`Cliente "${customer.name}" cadastrado`);
         }}
       />
@@ -354,15 +187,315 @@ function PdvPage() {
   );
 }
 
-function EmptyState() {
+/* ============== Steps ============== */
+
+function CustomersStep({
+  query, setQuery, results, onPick, onNew,
+}: {
+  query: string; setQuery: (s: string) => void;
+  results: Customer[]; onPick: (c: Customer) => void; onNew: () => void;
+}) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 p-10 text-center text-muted-foreground">
-      <div className="rounded-full bg-accent p-5"><User className="h-10 w-10 text-primary" /></div>
-      <div className="text-lg font-semibold text-foreground">Selecione um cliente</div>
-      <div className="max-w-xs text-sm">Use a busca acima ou clique em um cliente da lista para visualizar os itens consignados.</div>
+    <div className="mx-auto flex h-full max-w-3xl flex-col p-4 sm:p-6">
+      <div className="relative mb-4">
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          autoFocus
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Buscar cliente por nome, telefone ou cidade..."
+          className="h-14 rounded-xl pl-12 text-base"
+        />
+      </div>
+
+      <div className="mb-3 flex items-center justify-between px-1">
+        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Clientes <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-[11px]">{results.length}</span>
+        </div>
+        <Button size="sm" variant="outline" className="h-9" onClick={onNew}>
+          <Plus className="mr-1 h-4 w-4" />Novo cliente
+        </Button>
+      </div>
+
+      <div className="flex-1 space-y-2 overflow-auto pb-6">
+        {results.length === 0 && (
+          <div className="rounded-xl border border-dashed bg-surface p-10 text-center text-sm text-muted-foreground">
+            Nenhum cliente encontrado
+          </div>
+        )}
+        {results.map(c => (
+          <button
+            key={c.id}
+            onClick={() => onPick(c)}
+            className="flex w-full items-center gap-3 rounded-xl border bg-surface px-4 py-4 text-left shadow-sm transition active:scale-[0.99] hover:border-primary/40 hover:shadow"
+          >
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-primary">
+              <User className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-base font-semibold">{c.name}</div>
+              <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone}</span>
+                <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{c.city}</span>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
+
+function ItemsStep({
+  customer, items, totals, onBack, onAdd, onUpdate, onRemove, onNote, onContinue,
+}: {
+  customer: Customer;
+  items: ConsignedItem[];
+  totals: { totalQty: number; total: number };
+  onBack: () => void;
+  onAdd: () => void;
+  onUpdate: (id: string, patch: Partial<ConsignedItem>) => void;
+  onRemove: (id: string) => void;
+  onNote: (id: string) => void;
+  onContinue: () => void;
+}) {
+  return (
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <div className="border-b bg-surface px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-3xl items-start gap-3">
+          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={onBack} aria-label="Voltar">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-lg font-bold leading-tight">{customer.name}</div>
+            <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{customer.phone}</span>
+              <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{customer.city}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Items header */}
+      <div className="border-b bg-muted/40 px-4 py-2.5 sm:px-6">
+        <div className="mx-auto flex max-w-3xl items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <Package className="h-4 w-4 text-primary" />
+            Itens Consignados
+            <span className="rounded-full bg-surface px-2 py-0.5 text-xs text-muted-foreground">{items.length}</span>
+          </div>
+          <Button size="sm" onClick={onAdd}>
+            <Plus className="mr-1 h-4 w-4" />Adicionar item
+          </Button>
+        </div>
+      </div>
+
+      {/* Cards list */}
+      <div className="flex-1 overflow-auto px-4 pb-36 pt-3 sm:px-6">
+        <div className="mx-auto max-w-3xl space-y-3">
+          {items.length === 0 && (
+            <div className="rounded-xl border border-dashed bg-surface p-10 text-center text-sm text-muted-foreground">
+              Sem itens consignados. Toque em <strong>Adicionar item</strong> para começar.
+            </div>
+          )}
+          {items.map(i => (
+            <ItemCard
+              key={i.id}
+              item={i}
+              onUpdate={(patch) => onUpdate(i.id, patch)}
+              onRemove={() => onRemove(i.id)}
+              onNote={() => onNote(i.id)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Sticky footer */}
+      <div className="sticky bottom-0 border-t bg-surface/95 px-4 py-3 backdrop-blur sm:px-6">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Itens: {totals.totalQty}</div>
+            <div className="text-2xl font-extrabold text-primary">{fmtBRL(totals.total)}</div>
+          </div>
+          <Button size="lg" className="h-14 flex-1 max-w-xs text-base font-semibold" onClick={onContinue}>
+            Continuar <ChevronRight className="ml-1 h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ItemCard({
+  item, onUpdate, onRemove, onNote,
+}: {
+  item: ConsignedItem;
+  onUpdate: (p: Partial<ConsignedItem>) => void;
+  onRemove: () => void;
+  onNote: () => void;
+}) {
+  const setSold = (v: number) => onUpdate({ sold: Math.max(0, Math.min(item.quantity, v)) });
+  const subtotal = item.sold * item.unitPrice;
+  return (
+    <div className="rounded-xl border bg-surface p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-base font-semibold">{item.description}</div>
+          <div className="mt-0.5 font-mono text-xs text-muted-foreground">{item.code}</div>
+          {item.note && <div className="mt-1 text-xs italic text-muted-foreground">obs: {item.note}</div>}
+        </div>
+        <div className="flex items-center gap-1">
+          <Button size="icon" variant="ghost" className="h-9 w-9" onClick={onNote} title="Observação">
+            <MessageSquarePlus className="h-4 w-4" />
+          </Button>
+          <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive" onClick={onRemove} title="Remover">
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+        <div className="text-muted-foreground">Disponível: <span className="font-semibold text-foreground">{item.quantity}</span></div>
+        <div className="text-muted-foreground">Unit.: <span className="font-semibold text-foreground">{fmtBRL(item.unitPrice)}</span></div>
+      </div>
+
+      <div className="mt-3 flex items-center justify-between rounded-lg bg-muted/40 p-2">
+        <span className="pl-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Vendida</span>
+        <div className="flex items-center gap-2">
+          <Button size="icon" variant="outline" className="h-11 w-11" onClick={() => setSold(item.sold - 1)} aria-label="Diminuir">
+            <Minus className="h-5 w-5" />
+          </Button>
+          <Input
+            type="number"
+            min={0}
+            max={item.quantity}
+            value={item.sold}
+            onChange={e => setSold(Number(e.target.value) || 0)}
+            className="h-11 w-16 text-center text-lg font-bold"
+          />
+          <Button size="icon" variant="outline" className="h-11 w-11" onClick={() => setSold(item.sold + 1)} aria-label="Aumentar">
+            <Plus className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="mt-2 text-right text-sm">
+        Subtotal: <span className="text-base font-bold text-primary">{fmtBRL(subtotal)}</span>
+      </div>
+    </div>
+  );
+}
+
+function FinalizeStep({
+  customer, totals, payment, setPayment, responsible, setResponsible, notes, setNotes,
+  onBack, onSave, onSavePrint, onExport,
+}: {
+  customer: Customer;
+  totals: { totalQty: number; total: number };
+  payment: string; setPayment: (s: string) => void;
+  responsible: string; setResponsible: (s: string) => void;
+  notes: string; setNotes: (s: string) => void;
+  onBack: () => void;
+  onSave: () => void;
+  onSavePrint: () => void;
+  onExport: () => void;
+}) {
+  return (
+    <div className="flex h-full flex-col">
+      <div className="border-b bg-surface px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-2xl items-center gap-3">
+          <Button variant="ghost" size="icon" className="h-10 w-10" onClick={onBack} aria-label="Voltar">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <div className="text-lg font-bold leading-tight">Finalizar Pedido</div>
+            <div className="text-xs text-muted-foreground">{customer.name}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-auto px-4 pb-36 pt-4 sm:px-6">
+        <div className="mx-auto max-w-2xl space-y-4">
+          <div>
+            <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Pagamento</Label>
+            <Select value={payment} onValueChange={setPayment}>
+              <SelectTrigger className="h-12 text-base"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                <SelectItem value="Pix">Pix</SelectItem>
+                <SelectItem value="Cartão Débito">Cartão Débito</SelectItem>
+                <SelectItem value="Cartão Crédito">Cartão Crédito</SelectItem>
+                <SelectItem value="A Prazo">A Prazo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Responsável</Label>
+            <Select value={responsible} onValueChange={setResponsible}>
+              <SelectTrigger className="h-12 text-base"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Luiz Carlos">Luiz Carlos</SelectItem>
+                <SelectItem value="Fábio Fonseca">Fábio Fonseca</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="mb-1.5 block text-xs uppercase text-muted-foreground">Observações</Label>
+            <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={4} placeholder="Notas do pedido..." />
+          </div>
+
+          <Button variant="outline" className="h-12 w-full" onClick={onExport}>
+            <FileSpreadsheet className="mr-2 h-5 w-5" />Exportar Excel
+          </Button>
+        </div>
+      </div>
+
+      <div className="sticky bottom-0 border-t bg-surface/95 px-4 py-3 backdrop-blur sm:px-6">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
+          <div>
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Itens: {totals.totalQty}</div>
+            <div className="text-2xl font-extrabold text-primary">{fmtBRL(totals.total)}</div>
+          </div>
+          <div className="flex flex-1 max-w-md gap-2">
+            <Button variant="outline" className="h-14 flex-1 text-base" onClick={onSave}>
+              <Save className="mr-2 h-5 w-5" />Salvar
+            </Button>
+            <Button className="h-14 flex-1 text-base font-semibold" onClick={onSavePrint}>
+              <Printer className="mr-2 h-5 w-5" />Imprimir
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DoneStep({ order, onReprint, onNew }: { order: Order; onReprint: () => void; onNew: () => void }) {
+  return (
+    <div className="mx-auto flex h-full max-w-md flex-col items-center justify-center gap-5 p-6 text-center">
+      <div className="rounded-full bg-success/15 p-5">
+        <CheckCircle2 className="h-16 w-16 text-success" />
+      </div>
+      <div>
+        <div className="text-2xl font-bold">Pedido #{order.number} salvo!</div>
+        <div className="mt-1 text-sm text-muted-foreground">Cliente: {order.customerName}</div>
+        <div className="mt-1 text-3xl font-extrabold text-primary">{fmtBRL(order.total)}</div>
+      </div>
+      <div className="w-full space-y-2">
+        <Button variant="outline" className="h-12 w-full" onClick={onReprint}>
+          <Printer className="mr-2 h-5 w-5" />Imprimir novamente
+        </Button>
+        <Button className="h-12 w-full" onClick={onNew}>
+          Novo pedido
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/* ============== Dialogs (kept) ============== */
 
 function AddItemDialog({ open, onClose, onAdd }: { open: boolean; onClose: () => void; onAdd: (i: ConsignedItem) => void }) {
   const [code, setCode] = useState("");
@@ -452,11 +585,11 @@ function NewCustomerDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader><DialogTitle>Novo cliente</DialogTitle></DialogHeader>
-        <div className="grid gap-4">
-          <div className="grid grid-cols-2 gap-3">
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent side="right" className="w-full max-w-lg overflow-auto sm:max-w-xl">
+        <SheetHeader><SheetTitle>Novo cliente</SheetTitle></SheetHeader>
+        <div className="mt-4 grid gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div><Label>Nome *</Label><Input value={name} onChange={e => setName(e.target.value)} className="h-11" placeholder="Nome do cliente / oficina" /></div>
             <div><Label>Telefone</Label><Input value={phone} onChange={e => setPhone(e.target.value)} className="h-11" placeholder="(31) 9..." /></div>
             <div><Label>Cidade</Label><Input value={city} onChange={e => setCity(e.target.value)} className="h-11" placeholder="Ex: Belo Horizonte / MG" /></div>
@@ -470,10 +603,10 @@ function NewCustomerDialog({
               <span className="ml-auto rounded-full bg-surface px-2 py-0.5 text-xs text-muted-foreground">{items.length}</span>
             </div>
             <div className="grid grid-cols-12 gap-2">
-              <div className="col-span-3"><Label className="text-xs">Código</Label><Input value={code} onChange={e => setCode(e.target.value)} className="h-10" /></div>
-              <div className="col-span-5"><Label className="text-xs">Produto</Label><Input value={product} onChange={e => setProduct(e.target.value)} className="h-10" placeholder="Nome do produto" /></div>
-              <div className="col-span-2"><Label className="text-xs">Qtd</Label><Input type="number" min={1} value={qty} onChange={e => setQty(Number(e.target.value) || 1)} className="h-10" /></div>
-              <div className="col-span-2"><Label className="text-xs">Valor R$</Label><Input type="number" min={0} step="0.01" value={price} onChange={e => setPrice(Number(e.target.value) || 0)} className="h-10" /></div>
+              <div className="col-span-12 sm:col-span-4"><Label className="text-xs">Código</Label><Input value={code} onChange={e => setCode(e.target.value)} className="h-10" /></div>
+              <div className="col-span-12 sm:col-span-8"><Label className="text-xs">Produto</Label><Input value={product} onChange={e => setProduct(e.target.value)} className="h-10" placeholder="Nome do produto" /></div>
+              <div className="col-span-6"><Label className="text-xs">Qtd</Label><Input type="number" min={1} value={qty} onChange={e => setQty(Number(e.target.value) || 1)} className="h-10" /></div>
+              <div className="col-span-6"><Label className="text-xs">Valor R$</Label><Input type="number" min={0} step="0.01" value={price} onChange={e => setPrice(Number(e.target.value) || 0)} className="h-10" /></div>
               <div className="col-span-12">
                 <Label className="text-xs">Descrição <span className="font-normal text-muted-foreground">(opcional)</span></Label>
                 <Textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder="Anotação sobre o item..." />
@@ -498,13 +631,14 @@ function NewCustomerDialog({
               </ul>
             )}
           </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={onClose}>Cancelar</Button>
+            <Button onClick={submit}><Save className="mr-2 h-4 w-4" />Criar cliente</Button>
+          </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={submit}><Save className="mr-2 h-4 w-4" />Criar cliente</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
