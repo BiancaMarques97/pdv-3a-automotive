@@ -135,6 +135,12 @@ function PdvPage() {
     setNotes("");
     if (alsoPrint) setPrintOrder(order);
     if (!isDesktop) setStep("done");
+    else {
+      // No desktop, limpa a seleção para deixar claro que o pedido foi salvo
+      setSelected(null);
+      setItems([]);
+      setStep("customers");
+    }
     toast.success(`Pedido #${order.number} salvo`);
     return order;
   };
