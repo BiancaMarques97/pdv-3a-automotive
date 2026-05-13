@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useIsDesktop } from "@/hooks/use-desktop";
 import {
   Search, Plus, Trash2, Printer, Save, FileSpreadsheet, MapPin, Phone,
-  User, Package, ReceiptText, MessageSquarePlus, ArrowLeft, Minus, ChevronRight, CheckCircle2,
+  User, Package, ReceiptText, MessageSquarePlus, ArrowLeft, Minus, ChevronRight, CheckCircle2, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
