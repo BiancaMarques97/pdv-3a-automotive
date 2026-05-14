@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
@@ -29,9 +30,9 @@ import {
   CheckCircle2,
   X,
 } from "lucide-react";
+import { customersAPI as customersAPIStore } from "@/services/customers";
 import { toast } from "sonner";
 import {
-  customersAPI,
   consignedAPI,
   ordersAPI,
   fmtBRL,
@@ -41,6 +42,25 @@ import {
   type Order,
 } from "@/lib/store";
 import { exportOrderXLS } from "@/lib/excel";
+
+const customersAPI = {
+  ...customersAPIStore,
+
+  search: async (query: string) => {
+    const list = await customersAPIStore.list();
+
+    const normalizedQuery = query.trim().toLowerCase();
+
+    if (!normalizedQuery) return list;
+
+    return list.filter((c: Customer) =>
+      [c.name, c.phone, c.city]
+        .join(" ")
+        .toLowerCase()
+        .includes(normalizedQuery),
+    );
+  },
+};
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -58,7 +78,7 @@ function PdvPage() {
   const isDesktop = useIsDesktop();
   const [step, setStep] = useState<Step>("customers");
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Customer[]>(() => customersAPI.list());
+  const [results, setResults] = useState<Customer[]>([]);
   const [selected, setSelected] = useState<Customer | null>(null);
   const [items, setItems] = useState<ConsignedItem[]>([]);
   const [payment, setPayment] = useState("Dinheiro");
@@ -73,7 +93,9 @@ function PdvPage() {
   const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const t = setTimeout(() => setResults(customersAPI.search(query)), 120);
+    const t = setTimeout(() => {
+      customersAPI.search(query).then(setResults);
+    }, 120);
     return () => clearTimeout(t);
   }, [query]);
 
@@ -199,18 +221,24 @@ function PdvPage() {
     done: "Pedido Finalizado",
   };
 
-  const dialogs = (
+  const dialogs = ( 
     <>
       <AddItemDialog open={showAdd} onClose={() => setShowAdd(false)} onAdd={addItem} />
       <NewCustomerDialog
         open={showNewCustomer}
         onClose={() => setShowNewCustomer(false)}
-        onCreated={(customer) => {
-          setShowNewCustomer(false);
-          setResults(customersAPI.list());
-          pickCustomer(customer);
-          toast.success(`Cliente "${customer.name}" cadastrado`);
-        }}
+
+onCreated={async (customer, _items) => {
+toast.success(`Cliente "${customer.name}" cadastrado`);
+
+setShowNewCustomer(false);
+
+const customers = await customersAPI.list();
+setResults(customers);
+
+setSelected(customer);
+setStep("items");
+}}
       />
       <NoteDialog
         open={!!showNote}
@@ -1256,7 +1284,7 @@ function NewCustomerDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  onCreated: (customer: Customer, items: ConsignedItem[]) => void;
+ onCreated: (customer: Customer, items: ConsignedItem[]) => Promise<void>;
 }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -1308,35 +1336,40 @@ function NewCustomerDialog({
     setPrice(0);
   };
 
-  const submit = () => {
-    if (!name.trim()) {
-      toast.error("Informe o nome do cliente");
-      return;
-    }
-    const customer = customersAPI.create({
-      name: name.trim(),
-      phone: phone.trim(),
-      city: city.trim(),
-      document: doc.trim() || undefined,
-    });
-    let finalItems = items;
-    if (code && product) {
-      finalItems = [
-        ...items,
-        {
-          id: uid(),
-          code,
-          description: product,
-          quantity: qty,
-          sold: 0,
-          unitPrice: price,
-          note: note || undefined,
-        },
-      ];
-    }
-    consignedAPI.saveForCustomer(customer.id, finalItems);
-    onCreated(customer, finalItems);
-  };
+const submit = async () => {
+  if (!name.trim()) {
+    toast.error("Informe o nome do cliente");
+    return;
+  }
+
+  const customer = await customersAPI.create({
+    name: name.trim(),
+    phone: phone.trim(),
+    city: city.trim(),
+    document: doc.trim() || undefined,
+  });
+
+  let finalItems = items;
+
+  if (code && product) {
+    finalItems = [
+      ...items,
+      {
+        id: uid(),
+        code,
+        description: product,
+        quantity: qty,
+        sold: 0,
+        unitPrice: price,
+        note: note || undefined,
+      },
+    ];
+  }
+
+  consignedAPI.saveForCustomer(customer.id, finalItems);
+
+  await onCreated(customer, finalItems);
+};
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
@@ -1490,7 +1523,7 @@ function NoteDialog({
   onClose: () => void;
   onSave: (n: string) => void;
 }) {
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState(""); 
   useEffect(() => {
     setNote(item?.note ?? "");
   }, [item]);

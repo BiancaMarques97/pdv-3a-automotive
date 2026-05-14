@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 // Local persistence layer (no backend yet)
 export type Customer = {
   id: string;
@@ -123,8 +124,22 @@ function seed() {
       },
     ],
     c3: [
-      { id: uid(), code: "CAM-AR-MC", description: "Câmara de Ar Aro 14", quantity: 10, sold: 0, unitPrice: 32.0 },
-      { id: uid(), code: "VAL-PNE-TR4", description: "Válvula de pneu TR4", quantity: 50, sold: 0, unitPrice: 3.5 },
+      {
+        id: uid(),
+        code: "CAM-AR-MC",
+        description: "Câmara de Ar Aro 14",
+        quantity: 10,
+        sold: 0,
+        unitPrice: 32.0,
+      },
+      {
+        id: uid(),
+        code: "VAL-PNE-TR4",
+        description: "Válvula de pneu TR4",
+        quantity: 50,
+        sold: 0,
+        unitPrice: 3.5,
+      },
     ],
     c4: [],
   };
@@ -134,26 +149,6 @@ function seed() {
   write(K_COUNTER, 1000);
 }
 seed();
-
-export const customersAPI = {
-  list: () => read<Customer[]>(K_CUSTOMERS, []),
-  search: (q: string) => {
-    const qq = q.trim().toLowerCase();
-    const all = read<Customer[]>(K_CUSTOMERS, []);
-    if (!qq) return all;
-    return all.filter(
-      (c) =>
-        c.name.toLowerCase().includes(qq) || c.phone.toLowerCase().includes(qq) || c.city.toLowerCase().includes(qq),
-    );
-  },
-  get: (id: string) => read<Customer[]>(K_CUSTOMERS, []).find((c) => c.id === id),
-  create: (c: Omit<Customer, "id">) => {
-    const list = read<Customer[]>(K_CUSTOMERS, []);
-    const nc = { ...c, id: uid() };
-    write(K_CUSTOMERS, [nc, ...list]);
-    return nc;
-  },
-};
 
 export const consignedAPI = {
   forCustomer: (cid: string): ConsignedItem[] => {
@@ -188,4 +183,5 @@ export const ordersAPI = {
   },
 };
 
-export const fmtBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+export const fmtBRL = (v: number) =>
+  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
