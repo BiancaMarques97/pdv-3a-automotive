@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { ordersAPI, customersAPI, fmtBRL } from "@/lib/store";
-import { useMemo } from "react";
+import { ordersAPI, fmtBRL } from "@/lib/store";
+import { customersAPI } from "@/services/customers";
+import { useEffect, useMemo, useState } from "react";
 import { ShoppingCart, Users, DollarSign, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
@@ -11,8 +12,10 @@ export const Route = createFileRoute("/dashboard")({
 
 function Dashboard() {
   const orders = ordersAPI.list();
-  const customers = customersAPI.list();
+  const [customers, setCustomers] = useState<{ id: string }[]>([]);
+  useEffect(() => { customersAPI.list().then(setCustomers).catch(() => setCustomers([])); }, []);
   const today = new Date().toDateString();
+
 
   const stats = useMemo(() => {
     const todays = orders.filter(o => new Date(o.createdAt).toDateString() === today);
