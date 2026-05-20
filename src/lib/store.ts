@@ -150,6 +150,16 @@ function seed() {
 }
 seed();
 
+export const customersLocalAPI = {
+  list: (): Customer[] => read<Customer[]>(K_CUSTOMERS, []),
+  create: (c: Omit<Customer, "id">): Customer => {
+    const list = read<Customer[]>(K_CUSTOMERS, []);
+    const novo: Customer = { ...c, id: uid() };
+    write(K_CUSTOMERS, [...list, novo]);
+    return novo;
+  },
+};
+
 export const consignedAPI = {
   forCustomer: (cid: string): ConsignedItem[] => {
     const map = read<Record<string, ConsignedItem[]>>(K_CONSIGNED, {});
