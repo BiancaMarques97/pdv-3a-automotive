@@ -1,23 +1,27 @@
-/* eslint-disable prettier/prettier */
-
 export const customersAPI = {
   list: async () => {
     const response = await fetch("http://localhost:3333/clientes");
 
     const data: {
-      id: number;
-      nome: string;
-      telefone: string;
-      cidade: string;
-      documento?: string;
+      Codigo: string;
+      Razao_Social: string;
+      Cidade: string;
+      Fone: string;
+      CNPJ?: string;
     }[] = await response.json();
 
     return data.map((c) => ({
-      id: String(c.id),
-      name: c.nome,
-      phone: c.telefone,
-      city: c.cidade,
-      document: c.documento,
+      CodCliente: c.Codigo,
+
+      Codigo: c.Codigo,
+
+      name: c.Razao_Social,
+
+      phone: c.Fone,
+
+      city: c.Cidade,
+
+      document: c.CNPJ,
     }));
   },
 
@@ -30,21 +34,30 @@ export const customersAPI = {
       },
 
       body: JSON.stringify({
-        nome: customer.name,
-        telefone: customer.phone,
-        cidade: customer.city,
-        documento: customer.document,
+        Codigo: `CL${Date.now()}`,
+
+        Razao_Social: customer.name,
+
+        Cidade: customer.city,
+
+        Fone: customer.phone,
+
+        CNPJ: customer.document ?? "",
       }),
     });
 
     const data = await response.json();
 
     return {
-      id: String(data.id),
-      name: data.nome,
-      phone: data.telefone,
-      city: data.cidade,
-      document: data.documento,
+      CodCliente: Number(data.Codigo.replace(/\D/g, "")),
+
+      name: data.Razao_Social,
+
+      phone: data.Fone,
+
+      city: data.Cidade,
+
+      document: data.CNPJ,
     };
   },
 };

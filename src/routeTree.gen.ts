@@ -9,58 +9,127 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PedidoFinalizadoRouteImport } from './routes/pedido-finalizado'
 import { Route as HistoricoRouteImport } from './routes/historico'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as ClientesRouteImport } from './routes/clientes'
+import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as ARouteImport } from './routes/a'
+import { Route as NovoPedidoIdRouteImport } from './routes/novo-pedido.$id'
+import { Route as ClienteIdRouteImport } from './routes/cliente.$id'
 
+const PedidoFinalizadoRoute = PedidoFinalizadoRouteImport.update({
+  id: '/pedido-finalizado',
+  path: '/pedido-finalizado',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HistoricoRoute = HistoricoRouteImport.update({
   id: '/historico',
   path: '/historico',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const ClientesRoute = ClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ARoute = ARouteImport.update({
+  id: '/a',
+  path: '/a',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NovoPedidoIdRoute = NovoPedidoIdRouteImport.update({
+  id: '/novo-pedido/$id',
+  path: '/novo-pedido/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClienteIdRoute = ClienteIdRouteImport.update({
+  id: '/cliente/$id',
+  path: '/cliente/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/a': typeof ARoute
+  '/checkout': typeof CheckoutRoute
+  '/clientes': typeof ClientesRoute
   '/historico': typeof HistoricoRoute
+  '/pedido-finalizado': typeof PedidoFinalizadoRoute
+  '/cliente/$id': typeof ClienteIdRoute
+  '/novo-pedido/$id': typeof NovoPedidoIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/a': typeof ARoute
+  '/checkout': typeof CheckoutRoute
+  '/clientes': typeof ClientesRoute
   '/historico': typeof HistoricoRoute
+  '/pedido-finalizado': typeof PedidoFinalizadoRoute
+  '/cliente/$id': typeof ClienteIdRoute
+  '/novo-pedido/$id': typeof NovoPedidoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/a': typeof ARoute
+  '/checkout': typeof CheckoutRoute
+  '/clientes': typeof ClientesRoute
   '/historico': typeof HistoricoRoute
+  '/pedido-finalizado': typeof PedidoFinalizadoRoute
+  '/cliente/$id': typeof ClienteIdRoute
+  '/novo-pedido/$id': typeof NovoPedidoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/historico'
+  fullPaths:
+    | '/a'
+    | '/checkout'
+    | '/clientes'
+    | '/historico'
+    | '/pedido-finalizado'
+    | '/cliente/$id'
+    | '/novo-pedido/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/historico'
-  id: '__root__' | '/' | '/dashboard' | '/historico'
+  to:
+    | '/a'
+    | '/checkout'
+    | '/clientes'
+    | '/historico'
+    | '/pedido-finalizado'
+    | '/cliente/$id'
+    | '/novo-pedido/$id'
+  id:
+    | '__root__'
+    | '/a'
+    | '/checkout'
+    | '/clientes'
+    | '/historico'
+    | '/pedido-finalizado'
+    | '/cliente/$id'
+    | '/novo-pedido/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRoute
+  ARoute: typeof ARoute
+  CheckoutRoute: typeof CheckoutRoute
+  ClientesRoute: typeof ClientesRoute
   HistoricoRoute: typeof HistoricoRoute
+  PedidoFinalizadoRoute: typeof PedidoFinalizadoRoute
+  ClienteIdRoute: typeof ClienteIdRoute
+  NovoPedidoIdRoute: typeof NovoPedidoIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/pedido-finalizado': {
+      id: '/pedido-finalizado'
+      path: '/pedido-finalizado'
+      fullPath: '/pedido-finalizado'
+      preLoaderRoute: typeof PedidoFinalizadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/historico': {
       id: '/historico'
       path: '/historico'
@@ -68,27 +137,52 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoricoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
+    '/clientes': {
+      id: '/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof ClientesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/a': {
+      id: '/a'
+      path: '/a'
+      fullPath: '/a'
+      preLoaderRoute: typeof ARouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/novo-pedido/$id': {
+      id: '/novo-pedido/$id'
+      path: '/novo-pedido/$id'
+      fullPath: '/novo-pedido/$id'
+      preLoaderRoute: typeof NovoPedidoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cliente/$id': {
+      id: '/cliente/$id'
+      path: '/cliente/$id'
+      fullPath: '/cliente/$id'
+      preLoaderRoute: typeof ClienteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRoute,
+  ARoute: ARoute,
+  CheckoutRoute: CheckoutRoute,
+  ClientesRoute: ClientesRoute,
   HistoricoRoute: HistoricoRoute,
+  PedidoFinalizadoRoute: PedidoFinalizadoRoute,
+  ClienteIdRoute: ClienteIdRoute,
+  NovoPedidoIdRoute: NovoPedidoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
