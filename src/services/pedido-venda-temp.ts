@@ -1,5 +1,5 @@
 export type PedidoVendaTemp = {
-  Pedido: number;
+  Pedido: string;
 
   CodCliente: string;
 
@@ -26,24 +26,24 @@ export type PedidoVendaTemp = {
   OBS: string;
 };
 
-export const pedidoVendaTempAPI = {
-  list: async (): Promise<PedidoVendaTemp[]> => {
-    const response = await fetch("http://localhost:3333/Pedido_VendaTemp");
+// export const pedidoVendaTempAPI = {
+//   list: async (): Promise<PedidoVendaTemp[]> => {
+//     const response = await fetch("http://localhost:3333/Pedido_VendaTemp");
 
-    return response.json();
-  },
+//     return response.json();
+//   },
 
-  createMany: async (items: PedidoVendaTemp[]) => {
-    for (const item of items) {
-      await fetch("http://localhost:3333/Pedido_VendaTemp", {
-        method: "POST",
+//   createMany: async (items: PedidoVendaTemp[]) => {
+//     for (const item of items) {
+//       await fetch("http://localhost:3333/Pedido_VendaTemp", {
+//         method: "POST",
 
-        headers: {
-          "Content-Type": "application/json",
-        },
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
 
-        body: JSON.stringify(item),
-      });
-    }
-  },
-};
+//         body: JSON.stringify(item),
+//       });
+//     }
+//   },
+// };

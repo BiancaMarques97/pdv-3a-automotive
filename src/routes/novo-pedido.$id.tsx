@@ -11,6 +11,7 @@ import { Input } from "@/components/layout/input";
 import { customersAPI } from "@/services/customers";
 
 import { useOrderStore } from "@/services/order-store";
+import { supabase } from "@/services/supabase";
 
 export const Route = createFileRoute("/novo-pedido/$id")({
   component: PedidoPage,
@@ -92,11 +93,22 @@ function PedidoPage() {
       setCustomer(found);
     }
 
-    const response = await fetch("http://localhost:3333/produtos");
+    const { data, error } = await supabase.from("produtos").select("*");
 
-    const data = await response.json();
+    if (error) {
+      throw error;
+    }
+    setProducts(
+      data.map((p) => ({
+        CodProduto: p.codproduto,
 
-    setProducts(data);
+        Codigo: p.codproduto,
+
+        Descricao: p.descricao,
+
+        Valor_Un: Number(p.valor),
+      })),
+    );
   }
 
   const filtered = products.filter((p) =>
@@ -131,8 +143,6 @@ function PedidoPage() {
         reposto: "CR",
 
         quantity: 1,
-
-        // STRING
 
         price: product.Valor_Un.toString(),
       },

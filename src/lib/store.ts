@@ -53,6 +53,10 @@ function read<T>(k: string, fb: T): T {
     return fb;
   }
 }
+function write<T>(k: string, v: T) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(k, JSON.stringify(v));
+}
 
 export const consignedAPI = {
   forCustomer: (cid: number): ConsignedItem[] => {

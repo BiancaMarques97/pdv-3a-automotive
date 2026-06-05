@@ -1,63 +1,61 @@
+import { supabase } from "@/services/supabase";
+
 export const customersAPI = {
   list: async () => {
-    const response = await fetch("http://localhost:3333/clientes");
+    const { data, error } = await supabase.from("clientes").select("*");
 
-    const data: {
-      Codigo: string;
-      Razao_Social: string;
-      Cidade: string;
-      Fone: string;
-      CNPJ?: string;
-    }[] = await response.json();
+    if (error) {
+      throw error;
+    }
 
     return data.map((c) => ({
-      CodCliente: c.Codigo,
+      CodCliente: c.codigo,
 
-      Codigo: c.Codigo,
+      Codigo: c.codigo,
 
-      name: c.Razao_Social,
+      name: c.razao_social,
 
-      phone: c.Fone,
+      phone: c.fone,
 
-      city: c.Cidade,
+      city: c.cidade,
 
-      document: c.CNPJ,
+      document: c.cnpj,
     }));
   },
-
-  create: async (customer: { name: string; phone: string; city: string; document?: string }) => {
-    const response = await fetch("http://localhost:3333/clientes", {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify({
-        Codigo: `CL${Date.now()}`,
-
-        Razao_Social: customer.name,
-
-        Cidade: customer.city,
-
-        Fone: customer.phone,
-
-        CNPJ: customer.document ?? "",
-      }),
-    });
-
-    const data = await response.json();
-
-    return {
-      CodCliente: Number(data.Codigo.replace(/\D/g, "")),
-
-      name: data.Razao_Social,
-
-      phone: data.Fone,
-
-      city: data.Cidade,
-
-      document: data.CNPJ,
-    };
-  },
 };
+
+// create: async (customer: { name: string; phone: string; city: string; document?: string }) => {
+//   const response = await fetch("http://localhost:3333/clientes", {
+//     method: "POST",
+
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+
+//     body: JSON.stringify({
+//       Codigo: `CL${Date.now()}`,
+
+//       Razao_Social: customer.name,
+
+//       Cidade: customer.city,
+
+//       Fone: customer.phone,
+
+//       CNPJ: customer.document ?? "",
+//     }),
+//   });
+
+//   const data = await response.json();
+
+//   return {
+//     CodCliente: Number(data.Codigo.replace(/\D/g, "")),
+
+//     name: data.Razao_Social,
+
+//     phone: data.Fone,
+
+//     city: data.Cidade,
+
+//     document: data.CNPJ,
+//   };
+// },

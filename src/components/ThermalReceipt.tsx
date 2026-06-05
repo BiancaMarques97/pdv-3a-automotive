@@ -2,10 +2,10 @@ import logoMono from "@/assets/logo-3a-mono.png";
 
 import { forwardRef } from "react";
 
-import type { Customer, OrderItem } from "@/services/order-store";
+import type { OrderItem } from "@/services/order-store";
 
 type ThermalReceiptProps = {
-  customer: Customer | null;
+  customer: any;
 
   items: OrderItem[];
 
@@ -14,6 +14,10 @@ type ThermalReceiptProps = {
   obs: string;
 
   responsavel: string;
+
+  pedido?: number;
+
+  data?: string;
 };
 
 function fmtBRL(value: number) {
@@ -24,9 +28,7 @@ function fmtBRL(value: number) {
 }
 
 export const ThermalReceipt = forwardRef<HTMLDivElement, ThermalReceiptProps>(
-  function ThermalReceipt({ customer, items, payment, obs, responsavel }, ref) {
-    const pedido = Date.now();
-
+  function ThermalReceipt({ customer, items, payment, obs, responsavel, pedido, data }, ref) {
     const total = items.reduce(
       (acc, item) => acc + item.quantity * Number(item.price.replace(",", ".")),
       0,
@@ -34,7 +36,9 @@ export const ThermalReceipt = forwardRef<HTMLDivElement, ThermalReceiptProps>(
 
     const totalQty = items.reduce((acc, item) => acc + item.quantity, 0);
 
-    const dt = new Date();
+    const pedidoNumber = pedido ?? Date.now();
+
+    const dt = data ? new Date(data) : new Date();
 
     return (
       <div id="thermal-receipt" className="thermal print-area w-[100mm] bg-white p-3 text-black">
@@ -57,7 +61,7 @@ export const ThermalReceipt = forwardRef<HTMLDivElement, ThermalReceiptProps>(
         <div className="flex justify-between text-[12px]">
           <span>PEDIDO</span>
 
-          <strong>#{pedido}</strong>
+          <strong>#{pedidoNumber}</strong>
         </div>
 
         <div className="flex justify-between text-[12px]">

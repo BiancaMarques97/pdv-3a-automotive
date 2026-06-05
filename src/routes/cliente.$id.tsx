@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { ArrowLeft, ChevronRight, FileText, MapPin, Phone, Plus } from "lucide-react";
+import { ArrowLeft, FileText, MapPin, Phone, Plus } from "lucide-react";
 
 import { useEffect, useState } from "react";
 
@@ -156,7 +156,7 @@ function ClientePage() {
 
         {/* HISTORY */}
 
-        <div className="rounded-3xl border bg-background p-6">
+        {/* <div className="rounded-3xl border bg-background p-6">
           <div className="mb-4 text-lg font-bold">Últimos pedidos</div>
 
           <div className="space-y-3">
@@ -181,7 +181,7 @@ function ClientePage() {
               </button>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

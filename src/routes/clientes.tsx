@@ -137,7 +137,7 @@ function ClientesPage() {
         <div className="flex justify-end">
           <Button className="h-12 rounded-xl">
             <Upload className="mr-2 h-4 w-4" />
-            Importar XLS
+            Importar Clientes
           </Button>
         </div>
 

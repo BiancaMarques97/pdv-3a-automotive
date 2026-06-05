@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { useOrderStore } from "@/services/order-store";
+import { pedidoAPI } from "@/services/pedido-api";
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
@@ -47,50 +48,54 @@ function CheckoutPage() {
     const pedido = Date.now();
 
     const rows = items.map((item) => ({
-      Pedido: pedido,
+      pedido: pedido,
 
-      CodCliente: customer.Codigo,
+      codcliente: customer.Codigo,
 
-      NomeCliente: customer.name,
+      nomecliente: customer.name,
 
-      CodProduto: item.product.CodProduto,
+      codproduto: item.product.CodProduto,
 
-      Descricao: item.product.Descricao,
+      descricao: item.product.Descricao,
 
-      Qtde: item.quantity,
+      qtde: item.quantity,
 
-      Qtde_Entregue: item.quantity,
+      qtde_entregue: item.quantity,
 
-      Qtde_Pendente: 0,
+      qtde_pendente: 0,
 
-      Valor_Un: Number(item.price.replace(",", ".")),
+      valor_un: Number(item.price.replace(",", ".")),
 
-      Valor_Total: item.quantity * Number(item.price.replace(",", ".")),
+      valor_total: item.quantity * Number(item.price.replace(",", ".")),
 
-      Desc_Comissao: 0,
+      desc_comissao: 0,
 
-      Data: new Date().toISOString(),
+      data: new Date().toISOString(),
 
-      Data_Entrega: new Date().toISOString(),
+      data_entrega: new Date().toISOString(),
 
-      Responsavel: responsavel,
+      responsavel: responsavel,
 
-      Reposto: item.reposto,
+      reposto: item.reposto,
 
-      Pagamento: payment,
+      pagamento: payment,
 
-      OBS: obs,
+      obs: obs,
     }));
 
-    await fetch("http://localhost:3333/Pedido_VendaTemp", {
-      method: "POST",
+    try {
+      console.log("ROWS", rows);
 
-      headers: {
-        "Content-Type": "application/json",
-      },
+      await pedidoAPI.createMany(rows);
 
-      body: JSON.stringify(rows),
-    });
+      console.log("SALVOU NO SUPABASE");
+
+      navigate({
+        to: "/pedido-finalizado",
+      });
+    } catch (error) {
+      console.error("ERRO SUPABASE", error);
+    }
 
     navigate({
       to: "/pedido-finalizado",
@@ -140,6 +145,8 @@ function CheckoutPage() {
                   onChange={(e) => setPayment(e.target.value)}
                   className="h-14 w-full rounded-2xl border px-4"
                 >
+                  <option value="A Receber">A Receber</option>
+
                   <option value="Dinheiro">Dinheiro</option>
 
                   <option value="Deposito Bancario">Deposito Bancário</option>
