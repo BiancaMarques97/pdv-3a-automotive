@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useIsDesktop } from "@/hooks/use-desktop";
 import {
   Search,
@@ -1286,10 +1287,28 @@ function NewCustomerDialog({
   onClose: () => void;
  onCreated: (customer: Customer, items: ConsignedItem[]) => Promise<void>;
 }) {
-  const [name, setName] = useState("");
+  const [razaoSocial, setRazaoSocial] = useState("");
+  const [name, setName] = useState(""); // Nome Fantasia
+  const [doc, setDoc] = useState(""); // CNPJ
+  const [inscEstadual, setInscEstadual] = useState("");
+  const [categoria, setCategoria] = useState("SIMPLES NACIONAL");
+  const [dataCadastro, setDataCadastro] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [numero, setNumero] = useState("");
+  const [complemento, setComplemento] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [uf, setUf] = useState("");
+  const [cep, setCep] = useState("");
+  const [contato, setContato] = useState("");
+  const [departamento, setDepartamento] = useState("COMERCIAL");
   const [phone, setPhone] = useState("");
-  const [city, setCity] = useState("");
-  const [doc, setDoc] = useState("");
+  const [email, setEmail] = useState("");
+  const [obs, setObs] = useState("");
+  const [ativo, setAtivo] = useState(true);
+  const [classe, setClasse] = useState("GREEN");
+  const [consignado, setConsignado] = useState(true);
+
   const [items, setItems] = useState<ConsignedItem[]>([]);
   const [code, setCode] = useState("");
   const [product, setProduct] = useState("");
@@ -1299,10 +1318,27 @@ function NewCustomerDialog({
 
   useEffect(() => {
     if (open) {
+      setRazaoSocial("");
       setName("");
-      setPhone("");
-      setCity("");
       setDoc("");
+      setInscEstadual("");
+      setCategoria("SIMPLES NACIONAL");
+      setDataCadastro(new Date().toISOString().slice(0, 10));
+      setEndereco("");
+      setNumero("");
+      setComplemento("");
+      setBairro("");
+      setCidade("");
+      setUf("");
+      setCep("");
+      setContato("");
+      setDepartamento("COMERCIAL");
+      setPhone("");
+      setEmail("");
+      setObs("");
+      setAtivo(true);
+      setClasse("GREEN");
+      setConsignado(true);
       setItems([]);
       setCode("");
       setProduct("");
@@ -1337,15 +1373,17 @@ function NewCustomerDialog({
   };
 
 const submit = async () => {
-  if (!name.trim()) {
+  if (!name.trim() && !razaoSocial.trim()) {
     toast.error("Informe o nome do cliente");
     return;
   }
 
+  const cidadeUf = [cidade.trim(), uf.trim()].filter(Boolean).join(" / ");
+
   const customer = await customersAPI.create({
-    name: name.trim(),
+    name: (name.trim() || razaoSocial.trim()),
     phone: phone.trim(),
-    city: city.trim(),
+    city: cidadeUf,
     document: doc.trim() || undefined,
   });
 
@@ -1373,44 +1411,151 @@ const submit = async () => {
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="right" className="w-full max-w-lg overflow-auto sm:max-w-xl">
+      <SheetContent side="right" className="w-full max-w-2xl overflow-auto sm:max-w-3xl">
         <SheetHeader>
           <SheetTitle>Novo cliente</SheetTitle>
         </SheetHeader>
         <div className="mt-4 grid gap-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <Label>Nome *</Label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="h-11"
-                placeholder="Nome do cliente / oficina"
-              />
-            </div>
-            <div>
-              <Label>Telefone</Label>
-              <Input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="h-11"
-                placeholder="(31) 9..."
-              />
-            </div>
-            <div>
-              <Label>Cidade</Label>
-              <Input
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="h-11"
-                placeholder="Ex: Belo Horizonte / MG"
-              />
-            </div>
-            <div>
-              <Label>CNPJ / CPF</Label>
-              <Input value={doc} onChange={(e) => setDoc(e.target.value)} className="h-11" />
+          {/* Identificação */}
+          <div className="rounded-md border bg-muted/30 p-3">
+            <div className="mb-2 text-sm font-semibold">Identificação</div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <Label>Razão Social</Label>
+                <Input value={razaoSocial} onChange={(e) => setRazaoSocial(e.target.value)} className="h-10" />
+              </div>
+              <div className="sm:col-span-2">
+                <Label>Nome Fantasia *</Label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} className="h-10" placeholder="Nome do cliente / oficina" />
+              </div>
+              <div>
+                <Label>CNPJ / CPF</Label>
+                <Input value={doc} onChange={(e) => setDoc(e.target.value)} className="h-10" />
+              </div>
+              <div>
+                <Label>Inscrição Estadual</Label>
+                <Input value={inscEstadual} onChange={(e) => setInscEstadual(e.target.value)} className="h-10" />
+              </div>
+              <div>
+                <Label>Categoria</Label>
+                <Select value={categoria} onValueChange={setCategoria}>
+                  <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="SIMPLES NACIONAL">SIMPLES NACIONAL</SelectItem>
+                    <SelectItem value="INDIVIDUAL">INDIVIDUAL</SelectItem>
+                    <SelectItem value="LUCRO PRESUMIDO">LUCRO PRESUMIDO</SelectItem>
+                    <SelectItem value="LUCRO REAL">LUCRO REAL</SelectItem>
+                    <SelectItem value="MEI">MEI</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Data de Cadastro</Label>
+                <Input type="date" value={dataCadastro} onChange={(e) => setDataCadastro(e.target.value)} className="h-10" />
+              </div>
             </div>
           </div>
+
+          {/* Endereço */}
+          <div className="rounded-md border bg-muted/30 p-3">
+            <div className="mb-2 text-sm font-semibold">Endereço</div>
+            <div className="grid grid-cols-12 gap-3">
+              <div className="col-span-12 sm:col-span-8">
+                <Label>Endereço</Label>
+                <Input value={endereco} onChange={(e) => setEndereco(e.target.value)} className="h-10" />
+              </div>
+              <div className="col-span-6 sm:col-span-2">
+                <Label>Número</Label>
+                <Input value={numero} onChange={(e) => setNumero(e.target.value)} className="h-10" />
+              </div>
+              <div className="col-span-6 sm:col-span-2">
+                <Label>CEP</Label>
+                <Input value={cep} onChange={(e) => setCep(e.target.value)} className="h-10" />
+              </div>
+              <div className="col-span-12 sm:col-span-6">
+                <Label>Complemento</Label>
+                <Input value={complemento} onChange={(e) => setComplemento(e.target.value)} className="h-10" />
+              </div>
+              <div className="col-span-12 sm:col-span-6">
+                <Label>Bairro</Label>
+                <Input value={bairro} onChange={(e) => setBairro(e.target.value)} className="h-10" />
+              </div>
+              <div className="col-span-8 sm:col-span-10">
+                <Label>Cidade</Label>
+                <Input value={cidade} onChange={(e) => setCidade(e.target.value)} className="h-10" />
+              </div>
+              <div className="col-span-4 sm:col-span-2">
+                <Label>UF</Label>
+                <Input value={uf} onChange={(e) => setUf(e.target.value.toUpperCase().slice(0, 2))} className="h-10" maxLength={2} />
+              </div>
+            </div>
+          </div>
+
+          {/* Contato */}
+          <div className="rounded-md border bg-muted/30 p-3">
+            <div className="mb-2 text-sm font-semibold">Contato</div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Contato</Label>
+                <Input value={contato} onChange={(e) => setContato(e.target.value)} className="h-10" placeholder="Nome da pessoa" />
+              </div>
+              <div>
+                <Label>Departamento</Label>
+                <Select value={departamento} onValueChange={setDepartamento}>
+                  <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="COMERCIAL">COMERCIAL</SelectItem>
+                    <SelectItem value="COMPRAS">COMPRAS</SelectItem>
+                    <SelectItem value="VENDAS">VENDAS</SelectItem>
+                    <SelectItem value="DONO">DONO</SelectItem>
+                    <SelectItem value="FINANCEIRO">FINANCEIRO</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Telefone</Label>
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="h-10" placeholder="(31) 9..." />
+              </div>
+              <div>
+                <Label>E-mail</Label>
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-10" />
+              </div>
+            </div>
+          </div>
+
+          {/* Classificação & Observações */}
+          <div className="rounded-md border bg-muted/30 p-3">
+            <div className="mb-2 text-sm font-semibold">Classificação</div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <Label>Observações</Label>
+                <Textarea value={obs} onChange={(e) => setObs(e.target.value)} rows={2} />
+              </div>
+              <div>
+                <Label>Classe</Label>
+                <Select value={classe} onValueChange={setClasse}>
+                  <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="GREEN">GREEN</SelectItem>
+                    <SelectItem value="YELLOW">YELLOW</SelectItem>
+                    <SelectItem value="RED">RED</SelectItem>
+                    <SelectItem value="-">—</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col justify-end gap-3 pb-1">
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox checked={ativo} onCheckedChange={(v) => setAtivo(!!v)} />
+                  <span>Status: <strong>{ativo ? "ATIVO" : "INATIVO"}</strong></span>
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox checked={consignado} onCheckedChange={(v) => setConsignado(!!v)} />
+                  <span>Consignado: <strong>{consignado ? "SIM" : "NÃO"}</strong></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
 
           <div className="rounded-md border bg-muted/30 p-3">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
