@@ -11,15 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PedidoFinalizadoRouteImport } from './routes/pedido-finalizado'
 import { Route as HistoricoRouteImport } from './routes/historico'
-<<<<<<< HEAD
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ARouteImport } from './routes/a'
 import { Route as NovoPedidoIdRouteImport } from './routes/novo-pedido.$id'
 import { Route as ClienteIdRouteImport } from './routes/cliente.$id'
-=======
-import { Route as IndexRouteImport } from './routes/index'
->>>>>>> 6a99d4797d826e5d38990802ff9573a075e2a900
 
 const PedidoFinalizadoRoute = PedidoFinalizadoRouteImport.update({
   id: '/pedido-finalizado',
@@ -31,7 +27,6 @@ const HistoricoRoute = HistoricoRouteImport.update({
   path: '/historico',
   getParentRoute: () => rootRouteImport,
 } as any)
-<<<<<<< HEAD
 const ClientesRoute = ClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
@@ -55,35 +50,22 @@ const NovoPedidoIdRoute = NovoPedidoIdRouteImport.update({
 const ClienteIdRoute = ClienteIdRouteImport.update({
   id: '/cliente/$id',
   path: '/cliente/$id',
-=======
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
->>>>>>> 6a99d4797d826e5d38990802ff9573a075e2a900
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-<<<<<<< HEAD
   '/a': typeof ARoute
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
-=======
-  '/': typeof IndexRoute
->>>>>>> 6a99d4797d826e5d38990802ff9573a075e2a900
   '/historico': typeof HistoricoRoute
   '/pedido-finalizado': typeof PedidoFinalizadoRoute
   '/cliente/$id': typeof ClienteIdRoute
   '/novo-pedido/$id': typeof NovoPedidoIdRoute
 }
 export interface FileRoutesByTo {
-<<<<<<< HEAD
   '/a': typeof ARoute
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
-=======
-  '/': typeof IndexRoute
->>>>>>> 6a99d4797d826e5d38990802ff9573a075e2a900
   '/historico': typeof HistoricoRoute
   '/pedido-finalizado': typeof PedidoFinalizadoRoute
   '/cliente/$id': typeof ClienteIdRoute
@@ -91,13 +73,9 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-<<<<<<< HEAD
   '/a': typeof ARoute
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
-=======
-  '/': typeof IndexRoute
->>>>>>> 6a99d4797d826e5d38990802ff9573a075e2a900
   '/historico': typeof HistoricoRoute
   '/pedido-finalizado': typeof PedidoFinalizadoRoute
   '/cliente/$id': typeof ClienteIdRoute
@@ -105,7 +83,6 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-<<<<<<< HEAD
   fullPaths:
     | '/a'
     | '/checkout'
@@ -138,16 +115,6 @@ export interface RootRouteChildren {
   ARoute: typeof ARoute
   CheckoutRoute: typeof CheckoutRoute
   ClientesRoute: typeof ClientesRoute
-=======
-  fullPaths: '/' | '/historico'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/historico'
-  id: '__root__' | '/' | '/historico'
-  fileRoutesById: FileRoutesById
-}
-export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
->>>>>>> 6a99d4797d826e5d38990802ff9573a075e2a900
   HistoricoRoute: typeof HistoricoRoute
   PedidoFinalizadoRoute: typeof PedidoFinalizadoRoute
   ClienteIdRoute: typeof ClienteIdRoute
@@ -170,7 +137,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoricoRouteImport
       parentRoute: typeof rootRouteImport
     }
-<<<<<<< HEAD
     '/clientes': {
       id: '/clientes'
       path: '/clientes'
@@ -204,26 +170,15 @@ declare module '@tanstack/react-router' {
       path: '/cliente/$id'
       fullPath: '/cliente/$id'
       preLoaderRoute: typeof ClienteIdRouteImport
-=======
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
->>>>>>> 6a99d4797d826e5d38990802ff9573a075e2a900
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-<<<<<<< HEAD
   ARoute: ARoute,
   CheckoutRoute: CheckoutRoute,
   ClientesRoute: ClientesRoute,
-=======
-  IndexRoute: IndexRoute,
->>>>>>> 6a99d4797d826e5d38990802ff9573a075e2a900
   HistoricoRoute: HistoricoRoute,
   PedidoFinalizadoRoute: PedidoFinalizadoRoute,
   ClienteIdRoute: ClienteIdRoute,
