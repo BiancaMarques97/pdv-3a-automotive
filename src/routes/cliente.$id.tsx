@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { ArrowLeft, FileText, MapPin, Phone, Plus } from "lucide-react";
+import { ArrowLeft, FileText, Mail, MapPin, Phone, Plus } from "lucide-react";
 
 import { useEffect, useState } from "react";
 
@@ -23,7 +23,21 @@ type Customer = {
 
   city: string;
 
+  email: string;
+
   document?: string;
+
+  endereco: string;
+
+  numero: number;
+
+  complemento: string;
+
+  bairro: string;
+
+  uf: string;
+
+  cep: string;
 };
 
 type Order = {
@@ -55,21 +69,6 @@ function ClientePage() {
     if (!found) return;
 
     setCustomer(found);
-
-    // MOCK TEMPORÁRIO
-    setOrders([
-      {
-        Pedido: 1042,
-        total: 1250,
-        createdAt: new Date().toISOString(),
-      },
-
-      {
-        Pedido: 1038,
-        total: 890,
-        createdAt: new Date().toISOString(),
-      },
-    ]);
   }
 
   if (!customer) {
@@ -96,7 +95,7 @@ function ClientePage() {
           <div>
             <div className="font-bold">Cliente</div>
 
-            <div className="text-xs text-muted-foreground">FICHA CADASTRAL</div>
+            <div className="text-xs text-muted-foreground">DADOS CADASTRADOS</div>
           </div>
         </div>
       </div>
@@ -106,10 +105,12 @@ function ClientePage() {
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 p-4">
         {/* CLIENT */}
 
-        <div className="rounded-3xl border bg-background p-6">
+        <div className="rounded-3xl border bg-background p-6 shadow-md">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="text-2xl font-bold">{customer.name}</div>
+              <div className="text-2xl font-bold">
+                {customer.name} - {customer.Codigo}
+              </div>
 
               <div className="mt-2 flex flex-col gap-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
@@ -129,14 +130,46 @@ function ClientePage() {
 
                   {customer.city}
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+
+                  {customer.email}
+                </div>
+              </div>
+              <h1 className="mt-4 text-black font-semibold">Endereço</h1>
+              <div className="mt-2 grid grid-cols-2 gap-y-2 gap-x-4 text-sm text-muted-foreground">
+                <div className="flex w-full">
+                  {customer.endereco} - {Number(customer.numero)}
+                </div>
+
+                <div className="flex gap-2">
+                  <h2 className="font-semibold ">Complemento: </h2>
+                  {customer.complemento || "---"}
+                </div>
+
+                <div className="flex gap-2">
+                  <h2 className="font-semibold">Bairro: </h2>
+                  {customer.bairro}
+                </div>
+
+                <div className="flex gap-2">
+                  <h2 className="font-semibold">Cidade: </h2>
+                  {customer.city}
+                </div>
+
+                <div className="flex gap-2">
+                  <h2 className="font-semibold">UF: </h2>
+                  {customer.uf}
+                </div>
+
+                <div className="flex gap-2">
+                  <h2 className="font-semibold">CEP: </h2>
+                  {customer.cep}
+                </div>
               </div>
             </div>
-
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 text-2xl">
-              👤
-            </div>
           </div>
-
           <Button
             onClick={() =>
               navigate({

@@ -1,3 +1,5 @@
+import logo3a from "@/assets/logo-3a.png";
+
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { CalendarDays, Eye, FileSpreadsheet } from "lucide-react";
@@ -9,6 +11,8 @@ import { pedidoAPI } from "@/services/pedido-api";
 import { ThermalReceipt } from "@/components/ThermalReceipt";
 
 import { exportOrderXLS } from "@/lib/export-order-xls";
+
+import { FileText, Users, X } from "lucide-react";
 
 export const Route = createFileRoute("/historico")({
   component: HistoricoPage,
@@ -84,46 +88,49 @@ function HistoricoPage() {
 
             {/* SIDEBAR */}
 
-            <div className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col border-r bg-background p-4 shadow-xl">
-              <div className="mb-8 flex items-center justify-between">
-                <div>
-                  <div className="font-bold">3A AUTOMOTIVE</div>
-
-                  <div className="text-xs text-muted-foreground">ERP</div>
-                </div>
-
-                <button onClick={() => setMenuOpen(false)} className="rounded-md border px-2 py-1">
-                  ✕
-                </button>
-              </div>
-
-              <div className="flex flex-col gap-2">
+            <div className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col border-r bg-white p-4 shadow-xl">
+              {" "}
+              <div className="mb-8 flex items-start justify-between">
+                {" "}
+                <div className="flex w-full flex-col items-center">
+                  {" "}
+                  <img
+                    src={logo3a}
+                    alt="3A Automotive"
+                    className="mb-4 h-28 w-28 object-contain"
+                  />{" "}
+                </div>{" "}
+                <button
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-md p-2 text-zinc-500 hover:bg-zinc-100"
+                >
+                  {" "}
+                  <X size={18} />{" "}
+                </button>{" "}
+              </div>{" "}
+              <div className="flex flex-col gap-3">
+                {" "}
                 <button
                   onClick={() => {
-                    navigate({
-                      to: "/clientes",
-                    });
-
+                    navigate({ to: "/clientes" });
                     setMenuOpen(false);
                   }}
-                  className="rounded-xl px-4 py-3 text-left hover:bg-muted"
+                  className="flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100"
                 >
-                  PDV
-                </button>
-
+                  {" "}
+                  <Users size={20} /> Clientes{" "}
+                </button>{" "}
                 <button
                   onClick={() => {
-                    navigate({
-                      to: "/historico",
-                    });
-
+                    navigate({ to: "/historico" });
                     setMenuOpen(false);
                   }}
-                  className="rounded-xl px-4 py-3 text-left hover:bg-muted"
+                  className="flex items-center gap-3 rounded-xl bg-[#F28C38] px-5 py-4 text-left font-medium text-white shadow-sm transition"
                 >
-                  Histórico
-                </button>
-              </div>
+                  {" "}
+                  <FileText size={20} /> Histórico{" "}
+                </button>{" "}
+              </div>{" "}
             </div>
           </>
         )}
@@ -138,7 +145,7 @@ function HistoricoPage() {
 
         {/* GRID */}
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 mt-5">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 m-5">
           {groupedOrders.map((order: any) => (
             <div key={order.pedido} className="rounded-3xl border bg-background p-5 shadow-sm">
               <div className="text-lg font-bold">{order.nomecliente}</div>

@@ -203,7 +203,9 @@ function PedidoPage() {
           <div>
             <div className="font-bold">Novo Pedido</div>
 
-            <div className="text-xs text-muted-foreground">{customer.name}</div>
+            <div className="text-xs text-muted-foreground">
+              {customer.name} - {customer.Codigo}
+            </div>
           </div>
         </div>
       </div>

@@ -13,14 +13,38 @@ export const customersAPI = {
 
       Codigo: c.codigo,
 
-      name: c.razao_social,
+      name: c.nome_fantasia,
 
       phone: c.fone,
 
       city: c.cidade,
 
+      email: c.email,
+
       document: c.cnpj,
+
+      endereco: c.endereco,
+
+      numero: c.numero,
+
+      complemento: c.complemento,
+
+      bairro: c.bairro,
+
+      uf: c.uf,
+
+      cep: c.cep,
     }));
+  },
+
+  importCustomers: async (customers: any[]) => {
+    const { error } = await supabase.from("clientes").upsert(customers, {
+      onConflict: "codigo",
+    });
+
+    if (error) {
+      throw error;
+    }
   },
 };
 

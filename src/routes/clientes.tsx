@@ -1,10 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-
+import logo3a from "@/assets/logo-3a.png";
 import { Button } from "@/components/layout/button";
 import { Input } from "@/components/layout/input";
-
-import { ChevronRight, Search, Upload } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ChevronRight, FileText, MapPin, Phone, Search, Upload, Users, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import * as XLSX from "xlsx";
 
 import { customersAPI } from "@/services/customers";
 
@@ -18,17 +18,101 @@ type Customer = {
   name: string;
   phone: string;
   city: string;
+  uf: string;
   document?: string;
 };
 
 function ClientesPage() {
   const navigate = useNavigate();
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [query, setQuery] = useState("");
 
   const [customers, setCustomers] = useState<Customer[]>([]);
 
   const [menuOpen, setMenuOpen] = useState(false);
+
+  async function handleImport(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    const buffer = await file.arrayBuffer();
+
+    const workbook = XLSX.read(buffer);
+
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    const rows = XLSX.utils.sheet_to_json(sheet);
+
+    const customers = rows.map((row: any) => ({
+      codigo: row.Codigo,
+      razao_social: row.Razao_Social,
+      nome_fantasia: row.Nome_Fantasia,
+      cnpj: row.CNPJ,
+      insc_estadual: row.Insc_Estadual,
+      categoria: row.Categoria,
+
+      endereco: row.Endereco,
+
+      numero: row.Numero ? String(row.Numero).replace(/\.0$/, "") : null,
+
+      complemento: row.Complemento,
+      bairro: row.Bairro,
+      cidade: row.Cidade,
+      uf: row.UF,
+      cep: row.CEP,
+
+      contato: row.Contato,
+      departamento: row.Departamento,
+      fone: row.Fone,
+      email: row.Email,
+
+      banco1: row.Banco1,
+      agencia1: row.Agencia1,
+      conta1: row.Conta1,
+      benef_1: row.Benef_1,
+
+      banco2: row.Banco2,
+      agencia2: row.Agencia2,
+      conta2: row.Conta2,
+      benef_2: row.Benef_2,
+
+      banco3: row.Banco3,
+      agencia3: row.Agencia3,
+      conta3: row.Conta3,
+      benef_3: row.Benef_3,
+
+      obs: row.Obs,
+      status: row.Status,
+      cont: row.Cont,
+      classe: row.Classe,
+      consignado: row.Consignado,
+    }));
+
+    try {
+      const confirmar = window.confirm(`Importar ${customers.length} clientes?`);
+
+      if (!confirmar) {
+        return;
+      }
+
+      await customersAPI.importCustomers(customers);
+
+      await loadCustomers();
+
+      alert(
+        customers.length === 1
+          ? "1 cliente importado com sucesso!"
+          : `${customers.length} clientes importados com sucesso!`,
+      );
+    } catch (error) {
+      console.error(error);
+
+      alert("Erro ao importar clientes.");
+    }
+  }
 
   useEffect(() => {
     loadCustomers();
@@ -72,46 +156,49 @@ function ClientesPage() {
 
           {/* SIDEBAR */}
 
-          <div className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col border-r bg-background p-4 shadow-xl">
-            <div className="mb-8 flex items-center justify-between">
-              <div>
-                <div className="font-bold">3A AUTOMOTIVE</div>
-
-                <div className="text-xs text-muted-foreground">ERP</div>
-              </div>
-
-              <button onClick={() => setMenuOpen(false)} className="rounded-md border px-2 py-1">
-                ✕
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-2">
+          <div className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col border-r bg-white p-4 shadow-xl">
+            {" "}
+            <div className="mb-8 flex items-start justify-between">
+              {" "}
+              <div className="flex w-full flex-col items-center">
+                {" "}
+                <img
+                  src={logo3a}
+                  alt="3A Automotive"
+                  className="mb-4 h-28 w-28 object-contain"
+                />{" "}
+              </div>{" "}
+              <button
+                onClick={() => setMenuOpen(false)}
+                className="rounded-md p-2 text-zinc-500 hover:bg-zinc-100"
+              >
+                {" "}
+                <X size={18} />{" "}
+              </button>{" "}
+            </div>{" "}
+            <div className="flex flex-col gap-3">
+              {" "}
               <button
                 onClick={() => {
-                  navigate({
-                    to: "/clientes",
-                  });
-
+                  navigate({ to: "/clientes" });
                   setMenuOpen(false);
                 }}
-                className="rounded-xl px-4 py-3 text-left hover:bg-muted"
+                className="flex items-center gap-3 rounded-xl bg-[#F28C38] px-5 py-4 text-left font-medium text-white shadow-sm transition"
               >
-                PDV
-              </button>
-
+                {" "}
+                <Users size={20} /> Clientes{" "}
+              </button>{" "}
               <button
                 onClick={() => {
-                  navigate({
-                    to: "/historico",
-                  });
-
+                  navigate({ to: "/historico" });
                   setMenuOpen(false);
                 }}
-                className="rounded-xl px-4 py-3 text-left hover:bg-muted"
+                className="flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100"
               >
-                Histórico
-              </button>
-            </div>
+                {" "}
+                <FileText size={20} /> Histórico{" "}
+              </button>{" "}
+            </div>{" "}
           </div>
         </>
       )}
@@ -134,8 +221,16 @@ function ClientesPage() {
 
         {/* ACTIONS */}
 
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".xlsx,.xls,.csv"
+          className="hidden"
+          onChange={handleImport}
+        />
+
         <div className="flex justify-end">
-          <Button className="h-12 rounded-xl">
+          <Button className="h-12 rounded-xl" onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-2 h-4 w-4" />
             Importar Clientes
           </Button>
@@ -155,10 +250,10 @@ function ClientesPage() {
                   },
                 })
               }
-              className="flex w-full items-center justify-between rounded-2xl border bg-background p-4 text-left transition hover:bg-muted/50"
+              className="flex w-full items-center justify-between rounded-2xl border bg-background p-4 text-left transition hover:bg-muted/50 shadow-sm"
             >
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-orange-500">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-200 text-orange-500">
                   👤
                 </div>
 
@@ -167,9 +262,15 @@ function ClientesPage() {
                     {customer.name} - {customer.CodCliente}
                   </div>
 
-                  <div className="mt-1 text-sm text-muted-foreground">{customer.city}</div>
+                  <div className="mt-1 flex gap-1.5 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    {customer.city} - {customer.uf}
+                  </div>
 
-                  <div className="mt-1 text-sm text-muted-foreground">{customer.phone}</div>
+                  <div className="mt-1 flex gap-1.5 text-sm text-muted-foreground">
+                    <Phone className="h-4 w-4" />
+                    {customer.phone}
+                  </div>
                 </div>
               </div>
 
