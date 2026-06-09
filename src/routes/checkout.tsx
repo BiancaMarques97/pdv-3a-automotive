@@ -45,7 +45,7 @@ function CheckoutPage() {
     console.log(items);
     if (!customer) return;
 
-    const pedido = Date.now();
+    const pedido = await pedidoAPI.gerarNumeroPedido();
 
     const rows = items.map((item) => ({
       pedido: pedido,
