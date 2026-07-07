@@ -1,5 +1,5 @@
 import logo3a from "@/assets/logo-3a.png";
-
+import { sendOrderEmail } from "@/services/send-order-email";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import {
@@ -8,6 +8,7 @@ import {
   FileDownIcon,
   FileSpreadsheet,
   FileText,
+  Mail,
   Users,
   X,
 } from "lucide-react";
@@ -46,6 +47,30 @@ function HistoricoPage() {
     load();
   }, []);
 
+const [sendingId, setSendingId] = useState<string | null>(null);
+
+async function handleSendEmail(order: any) {
+  try {
+    setSendingId(order.pedido);
+
+    const result = await sendOrderEmail({
+      data: {
+        pedido: order.pedido,
+        nomecliente: order.nomecliente,
+        pagamento: order.pagamento,
+        data: order.data,
+        total: order.total,
+        items: order.items, // já vem com codcliente, qtde_entregue, obs, etc.
+      },
+    });
+
+    console.log(result);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setSendingId(null);
+  }
+}
   const groupedOrders = useMemo(
     () =>
       Object.values(
@@ -213,10 +238,10 @@ function HistoricoPage() {
                 {order.pagamento}
               </div>
 
-              <div className="mt-6 flex gap-3">
+              <div className="mt-6 flex flex-col gap-3">
                 <button
                   onClick={() => setSelectedOrder(order)}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl border-[1.5px] border-orange-500 p-3 hover:bg-muted shadow-sm"
+                  className="flex flex-1 items-center justify-center gap-2  border-[1.5px] rounded-2xl bg-orange-500/80 text-sm font-semibold text-white p-3 cursor-pointer hover:bg-orange-500 shadow-sm"
                 >
                   <Eye className="h-5 w-5" />
                   Visualizar
@@ -224,9 +249,21 @@ function HistoricoPage() {
 
                 <button
                   onClick={() => exportOrderXLS(order)}
-                  className="flex items-center justify-center gap-2 rounded-2xl border-[1.5px] border-orange-500  p-3 hover:bg-muted shadow-sm"
+                  className="flex flex-1 items-center justify-center gap-2  border-[1.5px] rounded-2xl bg-orange-500/80 text-sm font-semibold text-white p-3 cursor-pointer hover:bg-orange-500 shadow-sm"
                 >
                   <FileDownIcon className="h-5 w-5" /> Baixar XML
+                </button>
+
+                
+
+
+
+<button
+                    onClick={() => handleSendEmail(order)}
+  disabled={sendingId === order.pedido}
+                  className="flex flex-1 items-center justify-center gap-2  border-[1.5px] rounded-2xl bg-orange-500/80 text-sm font-semibold text-white p-3 cursor-pointer hover:bg-orange-500 shadow-sm"
+                >
+                  <Mail className="h-5 w-5" /> Enviar XML por Email
                 </button>
               </div>
             </div>
