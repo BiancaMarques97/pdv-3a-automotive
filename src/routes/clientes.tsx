@@ -2,7 +2,7 @@ import logo3a from "@/assets/logo-3a.png";
 import { Button } from "@/components/layout/button";
 import { Input } from "@/components/layout/input";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ChevronRight, FileText, MapPin, Phone, Search, Upload, Users, X } from "lucide-react";
+import { CheckCircle2, ChevronRight, FileText, MapPin, Phone, Search, Upload, Users, X, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 
@@ -33,86 +33,95 @@ function ClientesPage() {
 
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  const [pendingImport, setPendingImport] = useState<any[] | null>(null);
+
+const [importing, setImporting] = useState(false);
+
   async function handleImport(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
+  const file = event.target.files?.[0];
 
-    if (!file) return;
+  if (!file) return;
 
-    const buffer = await file.arrayBuffer();
+  const buffer = await file.arrayBuffer();
 
-    const workbook = XLSX.read(buffer);
+  const workbook = XLSX.read(buffer);
 
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-    const rows = XLSX.utils.sheet_to_json(sheet);
+  const rows = XLSX.utils.sheet_to_json(sheet);
 
-    const customers = rows.map((row: any) => ({
-      codigo: row.Codigo,
-      razao_social: row.Razao_Social,
-      nome_fantasia: row.Nome_Fantasia,
-      cnpj: row.CNPJ,
-      insc_estadual: row.Insc_Estadual,
-      categoria: row.Categoria,
+  const customers = rows.map((row: any) => ({
+    codigo: row.Codigo,
+    razao_social: row.Razao_Social,
+    nome_fantasia: row.Nome_Fantasia,
+    cnpj: row.CNPJ,
+    insc_estadual: row.Insc_Estadual,
+    categoria: row.Categoria,
+    endereco: row.Endereco,
+    numero: row.Numero ? String(row.Numero).replace(/\.0$/, "") : null,
+    complemento: row.Complemento,
+    bairro: row.Bairro,
+    cidade: row.Cidade,
+    uf: row.UF,
+    cep: row.CEP,
+    contato: row.Contato,
+    departamento: row.Departamento,
+    fone: row.Fone,
+    email: row.Email,
+    banco1: row.Banco1,
+    agencia1: row.Agencia1,
+    conta1: row.Conta1,
+    benef_1: row.Benef_1,
+    banco2: row.Banco2,
+    agencia2: row.Agencia2,
+    conta2: row.Conta2,
+    benef_2: row.Benef_2,
+    banco3: row.Banco3,
+    agencia3: row.Agencia3,
+    conta3: row.Conta3,
+    benef_3: row.Benef_3,
+    obs: row.Obs,
+    status: row.Status,
+    cont: row.Cont,
+    classe: row.Classe,
+    consignado: row.Consignado,
+  }));
 
-      endereco: row.Endereco,
+  // Em vez de window.confirm, guarda os dados e abre o modal
+  setPendingImport(customers);
 
-      numero: row.Numero ? String(row.Numero).replace(/\.0$/, "") : null,
+  // Limpa o input pra permitir selecionar o mesmo arquivo de novo depois
+  event.target.value = "";
+}
 
-      complemento: row.Complemento,
-      bairro: row.Bairro,
-      cidade: row.Cidade,
-      uf: row.UF,
-      cep: row.CEP,
+async function confirmImport() {
+  if (!pendingImport) return;
 
-      contato: row.Contato,
-      departamento: row.Departamento,
-      fone: row.Fone,
-      email: row.Email,
+  try {
+    setImporting(true);
 
-      banco1: row.Banco1,
-      agencia1: row.Agencia1,
-      conta1: row.Conta1,
-      benef_1: row.Benef_1,
+    await customersAPI.importCustomers(pendingImport);
 
-      banco2: row.Banco2,
-      agencia2: row.Agencia2,
-      conta2: row.Conta2,
-      benef_2: row.Benef_2,
+    await loadCustomers();
 
-      banco3: row.Banco3,
-      agencia3: row.Agencia3,
-      conta3: row.Conta3,
-      benef_3: row.Benef_3,
+    setToast({
+      type: "success",
+      message:
+        pendingImport.length === 1
+          ? "1 cliente importado com sucesso."
+          : `${pendingImport.length} clientes importados com sucesso.`,
+    });
+  } catch (error) {
+    console.error(error);
 
-      obs: row.Obs,
-      status: row.Status,
-      cont: row.Cont,
-      classe: row.Classe,
-      consignado: row.Consignado,
-    }));
-
-    try {
-      const confirmar = window.confirm(`Importar ${customers.length} clientes?`);
-
-      if (!confirmar) {
-        return;
-      }
-
-      await customersAPI.importCustomers(customers);
-
-      await loadCustomers();
-
-      alert(
-        customers.length === 1
-          ? "1 cliente importado com sucesso!"
-          : `${customers.length} clientes importados com sucesso!`,
-      );
-    } catch (error) {
-      console.error(error);
-
-      alert("Erro ao importar clientes.");
-    }
+    setToast({ type: "error", message: "Não foi possível importar os clientes. Tente novamente." });
+  } finally {
+    setImporting(false);
+    setPendingImport(null);
   }
+}
 
   useEffect(() => {
     loadCustomers();
@@ -278,7 +287,70 @@ function ClientesPage() {
             </button>
           ))}
         </div>
+
+        </div>
+
+      {toast && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
+            {toast.type === "success" ? (
+              <CheckCircle2 className="mx-auto h-20 w-20 text-green-500" />
+            ) : (
+              <XCircle className="mx-auto h-20 w-20 text-red-500" />
+            )}
+
+            <div className="mt-5 text-2xl font-bold">
+              {toast.type === "success" ? "Sucesso!" : "Erro"}
+            </div>
+
+            <div className="mt-2 text-base text-muted-foreground">
+              {toast.message}
+            </div>
+
+            <button
+              onClick={() => setToast(null)}
+              className="mt-6 w-full rounded-2xl p-4 text-lg font-semibold text-white shadow-sm bg-orange-500/80"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {pendingImport && (
+  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+    <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
+      <Upload className="mx-auto h-10 w-10 text-orange-500" />
+
+      <div className="mt-5 text-2xl font-bold">Confirmar importação</div>
+
+      <div className="mt-2 text-lg text-muted-foreground">
+        {pendingImport.length === 1
+          ? "Deseja importar 1 cliente?"
+          : `Deseja importar ${pendingImport.length} clientes?`}
       </div>
+
+      <div className="mt-6 flex gap-3">
+        <button
+          onClick={() => setPendingImport(null)}
+          disabled={importing}
+          className="flex-1 rounded-2xl border p-4 text-lg font-semibold text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={confirmImport}
+          disabled={importing}
+          className="flex-1 rounded-2xl bg-orange-500/80 p-4 text-lg font-semibold text-white shadow-sm hover:bg-orange-500 disabled:opacity-50"
+        >
+          {importing ? "Importando..." : "Importar"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
+    

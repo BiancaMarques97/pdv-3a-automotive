@@ -4,6 +4,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import {
   CalendarDays,
+  CheckCircle2,
   Eye,
   FileDownIcon,
   FileSpreadsheet,
@@ -11,6 +12,7 @@ import {
   Mail,
   Users,
   X,
+  XCircle,
 } from "lucide-react";
 
 import { useEffect, useMemo, useState } from "react";
@@ -32,6 +34,7 @@ function HistoricoPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [search, setSearch] = useState("");
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -53,20 +56,21 @@ async function handleSendEmail(order: any) {
   try {
     setSendingId(order.pedido);
 
-    const result = await sendOrderEmail({
+    await sendOrderEmail({
       data: {
         pedido: order.pedido,
         nomecliente: order.nomecliente,
         pagamento: order.pagamento,
         data: order.data,
         total: order.total,
-        items: order.items, // já vem com codcliente, qtde_entregue, obs, etc.
+        items: order.items,
       },
     });
 
-    console.log(result);
+    setToast({ type: "success", message: "O pedido foi enviado por e-mail com sucesso." });
   } catch (err) {
     console.error(err);
+    setToast({ type: "error", message: "Não foi possível enviar o e-mail. Tente novamente." });
   } finally {
     setSendingId(null);
   }
@@ -314,6 +318,33 @@ async function handleSendEmail(order: any) {
           </div>
         </div>
       )}
+
+           {toast && (
+  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+    <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
+      {toast.type === "success" ? (
+        <CheckCircle2 className="mx-auto h-20 w-20 text-green-500" />
+      ) : (
+        <XCircle className="mx-auto h-20 w-20 text-red-500" />
+      )}
+
+      <div className="mt-5 text-2xl font-bold">
+        {toast.type === "success" ? "Enviado!" : "Erro"}
+      </div>
+
+      <div className="mt-2 text-lg text-muted-foreground">
+        {toast.message}
+      </div>
+
+      <button
+        onClick={() => setToast(null)}
+        className="mt-6 w-full rounded-2xl p-4 text-lg font-semibold text-white shadow-sm bg-orange-500/80"
+      >
+        OK
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 }
