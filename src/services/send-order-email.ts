@@ -69,11 +69,6 @@ function buildOrderXlsBuffer(order: SendOrderEmailData) {
 export const sendOrderEmail = createServerFn({ method: "POST" })
   .inputValidator((data: SendOrderEmailData) => data)
   .handler(async ({ data }) => {
-    console.log("DEBUG env:", {
-      hasResendKey: !!process.env.RESEND_API_KEY,
-      from: process.env.ORDER_EMAIL_FROM,
-      to: process.env.ORDER_EMAIL_TO,
-    });
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     const fileBase64 = buildOrderXlsBuffer(data);
