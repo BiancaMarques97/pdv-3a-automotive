@@ -4,4 +4,8 @@
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+   "vars": {
+    "ORDER_EMAIL_FROM": "Pedidos PDV 3A Automotive <pedidos@pdv.3aautomotive.com.br>",
+    "ORDER_EMAIL_TO": "vendas@3aautomotive.com.br"
+  }
 }
