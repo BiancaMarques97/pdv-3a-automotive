@@ -22,7 +22,7 @@ type Customer = {
   document?: string;
 };
 
-function ClientesPage() {
+ function ClientesPage() {
   const navigate = useNavigate();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -126,6 +126,8 @@ async function confirmImport() {
   useEffect(() => {
     loadCustomers();
   }, []);
+
+
 
   async function loadCustomers() {
     const data = await customersAPI.list();
@@ -244,7 +246,7 @@ async function confirmImport() {
             Importar Clientes
           </Button>
         </div>
-
+       
         {/* LIST */}
 
         <div className="space-y-3">

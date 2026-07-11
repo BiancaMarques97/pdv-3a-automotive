@@ -45,6 +45,14 @@ export type OrderStore = {
 
   responsavel: string;
 
+  // Número oficial do pedido (ex: "PDV-0004"), gerado pelo Supabase no
+  // checkout, e a data/hora em que foi finalizado. Guardamos os dois aqui
+  // pra tela de pedido-finalizado (cupom/ZPL e XLS) usar exatamente o
+  // mesmo valor que foi salvo no banco, em vez de gerar um novo.
+  pedido: string | null;
+
+  dataFinalizacao: string | null;
+
   setCustomer: (customer: Customer) => void;
 
   setItems: (items: OrderItem[]) => void;
@@ -54,6 +62,8 @@ export type OrderStore = {
   setObs: (obs: string) => void;
 
   setResponsavel: (responsavel: string) => void;
+
+  setPedido: (pedido: string, dataFinalizacao: string) => void;
 
   clear: () => void;
 };
@@ -68,6 +78,10 @@ export const useOrderStore = create<OrderStore>((set) => ({
   obs: "",
 
   responsavel: "Luiz Carlos",
+
+  pedido: null,
+
+  dataFinalizacao: null,
 
   setCustomer: (customer) =>
     set({
@@ -94,6 +108,12 @@ export const useOrderStore = create<OrderStore>((set) => ({
       responsavel,
     }),
 
+  setPedido: (pedido, dataFinalizacao) =>
+    set({
+      pedido,
+      dataFinalizacao,
+    }),
+
   clear: () =>
     set({
       customer: null,
@@ -105,5 +125,9 @@ export const useOrderStore = create<OrderStore>((set) => ({
       obs: "",
 
       responsavel: "Luiz Carlos",
+
+      pedido: null,
+
+      dataFinalizacao: null,
     }),
 }));

@@ -1,6 +1,8 @@
 import logo3a from "@/assets/logo-3a.png";
 import { sendOrderEmail } from "@/services/send-order-email";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ZebraBluetoothService } from "@/components/zebra-bluetooth";
+import { buildReceiptZPL } from "@/components/Receipt zpl";
 
 import {
   CalendarDays,
@@ -29,7 +31,7 @@ export const Route = createFileRoute("/historico")({
 
 function HistoricoPage() {
   const navigate = useNavigate();
-
+const zebra = new ZebraBluetoothService();
   const [menuOpen, setMenuOpen] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
@@ -51,6 +53,50 @@ function HistoricoPage() {
   }, []);
 
 const [sendingId, setSendingId] = useState<string | null>(null);
+
+async function reprintReceipt() {
+    console.log("Entrou no printReceipt");
+  if (!selectedOrder) return;
+
+  try {
+    
+    await zebra.connect();
+
+    const zpl = buildReceiptZPL({
+      customer: {
+        Codigo: selectedOrder.items[0]?.codcliente,
+        name: selectedOrder.nomecliente,
+      },
+
+      items: selectedOrder.items.map((item: any) => ({
+        quantity: item.qtde,
+        price: String(item.valor_un),
+        reposto: item.reposto,
+        product: {
+          CodProduto: item.codproduto,
+          Codigo: item.codproduto,
+          Descricao: item.descricao,
+          Valor_Un: Number(item.valor_un),
+        },
+      })),
+
+      payment: selectedOrder.pagamento,
+      obs: selectedOrder.items[0]?.obs || "",
+      responsavel: selectedOrder.items[0]?.responsavel || "",
+      pedido: selectedOrder.pedido,
+      data: selectedOrder.data,
+    });
+
+    const sgdContinuous =
+      '! U1 setvar "ezpl.media_type" "continuous"\n';
+
+    await zebra.print(sgdContinuous + zpl);
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao imprimir.");
+  }
+}
 
 async function handleSendEmail(order: any) {
   try {
@@ -300,21 +346,12 @@ async function handleSendEmail(order: any) {
               data={selectedOrder.data}
             />
 
-            <div className="mt-4 flex gap-3">
-              <button
-                onClick={() => window.print()}
-                className="flex-1 rounded-2xl border p-3"
-              >
-                Reimprimir
-              </button>
-
-              <button
-                onClick={() => setSelectedOrder(null)}
-                className="flex-1 rounded-2xl border p-3"
-              >
-                Fechar
-              </button>
-            </div>
+      <button
+  onClick={reprintReceipt}
+  className="flex-1 rounded-2xl border p-3"
+>
+  Reimprimir
+</button>
           </div>
         </div>
       )}

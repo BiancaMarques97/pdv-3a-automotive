@@ -32,6 +32,8 @@ function CheckoutPage() {
 
   const setResponsavel = useOrderStore((state) => state.setResponsavel);
 
+  const setPedido = useOrderStore((state) => state.setPedido);
+
   // TOTAL
 
   const total = items.reduce(
@@ -46,6 +48,7 @@ function CheckoutPage() {
     if (!customer) return;
 
     const pedido = await pedidoAPI.gerarNumeroPedido();
+    const dataFinalizacao = new Date().toISOString();
 
     const rows = items.map((item) => ({
       pedido: pedido,
@@ -70,9 +73,9 @@ function CheckoutPage() {
 
       desc_comissao: 0,
 
-      data: new Date().toISOString(),
+      data: dataFinalizacao,
 
-      data_entrega: new Date().toISOString(),
+      data_entrega: dataFinalizacao,
 
       responsavel: responsavel,
 
@@ -90,16 +93,17 @@ function CheckoutPage() {
 
       console.log("SALVOU NO SUPABASE");
 
+      // Guarda o número oficial (ex: "PDV-0004") e a data de finalização
+      // no store, pra tela de pedido-finalizado usar exatamente o mesmo
+      // valor no cupom (ZPL) e no XLS, em vez de gerar um número novo.
+      setPedido(pedido, dataFinalizacao);
+
       navigate({
         to: "/pedido-finalizado",
       });
     } catch (error) {
       console.error("ERRO SUPABASE", error);
     }
-
-    navigate({
-      to: "/pedido-finalizado",
-    });
   }
 
   return (

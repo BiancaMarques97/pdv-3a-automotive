@@ -15,7 +15,7 @@ type ThermalReceiptProps = {
 
   responsavel: string;
 
-  pedido?: number;
+  pedido?: string;
 
   data?: string;
 };
@@ -36,7 +36,7 @@ export const ThermalReceipt = forwardRef<HTMLDivElement, ThermalReceiptProps>(
 
     const totalQty = items.reduce((acc, item) => acc + item.quantity, 0);
 
-    const pedidoNumber = pedido ?? Date.now();
+    const pedidoNumber = pedido ?? `PDV-${Date.now()}`;
 
     const dt = data ? new Date(data) : new Date();
 

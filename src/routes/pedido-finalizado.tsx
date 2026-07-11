@@ -12,6 +12,11 @@ import { ThermalReceipt } from "@/components/ThermalReceipt";
 
 import { useOrderStore } from "@/services/order-store";
 
+import { buildReceiptZPL } from "@/components/Receipt zpl";
+
+import { ZebraBluetoothService } from "@/components/zebra-bluetooth";
+import { useState } from "react";
+
 export const Route = createFileRoute("/pedido-finalizado")({
   component: PedidoFinalizadoPage,
 });
@@ -20,6 +25,7 @@ function PedidoFinalizadoPage() {
   const navigate = useNavigate();
 
   // STORE
+const zebra = new ZebraBluetoothService();
 
   const customer = useOrderStore((state) => state.customer);
 
@@ -31,17 +37,54 @@ function PedidoFinalizadoPage() {
 
   const responsavel = useOrderStore((state) => state.responsavel);
 
+  const pedido = useOrderStore((state) => state.pedido);
+
+  const dataFinalizacao = useOrderStore((state) => state.dataFinalizacao);
+
   const clear = useOrderStore((state) => state.clear);
+
+  const [previewOpen, setPreviewOpen] = useState(false);
+
 
   // TOTAL
 
   const total = items.reduce((acc, item) => acc + item.quantity * item.product.Valor_Un, 0);
 
-  // PRINT
+  // PRINT (Zebra ZQ521 via Browser Print / ZPL)
 
-  function printReceipt() {
-    window.print();
+async function printReceipt() {
+  if (!customer || items.length === 0) {
+    alert("Pedido vazio");
+    return;
   }
+
+  try {
+    await zebra.connect();
+
+    const zpl = buildReceiptZPL({
+      customer,
+      items,
+      payment,
+      obs,
+      responsavel,
+      pedido: pedido ?? undefined,
+      data: dataFinalizacao ?? undefined,
+    });
+
+    const sgdContinuous =
+      '! U1 setvar "ezpl.media_type" "continuous"\n';
+
+    await zebra.print(sgdContinuous + zpl);
+
+    zebra.disconnect();
+
+    setPreviewOpen(false);
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao imprimir via Bluetooth.");
+  }
+}
+
 
   // WHATS / PNG
 
@@ -97,12 +140,14 @@ function PedidoFinalizadoPage() {
       return;
     }
 
-    const pedido = String(Date.now());
+    const pedidoLabel = pedido ?? String(Date.now());
 
-    const now = new Date().toLocaleString("pt-BR");
+    const now = dataFinalizacao
+      ? new Date(dataFinalizacao).toLocaleString("pt-BR")
+      : new Date().toLocaleString("pt-BR");
 
     const rows = items.map((item) => ({
-      Pedido: pedido,
+      Pedido: pedidoLabel,
 
       CodCliente: customer.Codigo,
 
@@ -196,13 +241,13 @@ function PedidoFinalizadoPage() {
           <div className="mt-10 grid grid-cols-2 gap-5">
             {/* IMPRIMIR */}
 
-            <button
-              onClick={printReceipt}
-              className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted"
-            >
-              <Printer className="h-7 w-7" />
-              Imprimir
-            </button>
+         <button
+  onClick={() => setPreviewOpen(true)}
+  className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted"
+>
+  <Printer className="h-7 w-7" />
+  Imprimir
+</button>
 
             {/* XLS */}
 
@@ -233,7 +278,7 @@ function PedidoFinalizadoPage() {
         </div>
       </div>
 
-      {/* PRINT */}
+      {/* Preview em HTML mantido só para o botão de compartilhar (PNG via html2canvas) */}
       <div className="hidden print:block">
         <ThermalReceipt
           customer={customer}
@@ -243,6 +288,41 @@ function PedidoFinalizadoPage() {
           responsavel={responsavel}
         />
       </div>
+
+      {previewOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div className="max-h-[90vh] w-full max-w-md overflow-auto rounded-3xl bg-white p-4">
+
+    <ThermalReceipt
+  customer={customer}
+  items={items}
+  payment={payment}
+  obs={obs}
+  responsavel={responsavel}
+  pedido={pedido ?? undefined}
+  data={dataFinalizacao ?? undefined}
+/>
+
+      <div className="mt-4 flex gap-3">
+        <button
+          onClick={() => setPreviewOpen(false)}
+          className="flex-1 rounded-2xl border p-3"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={printReceipt}
+          className="flex-1 rounded-2xl bg-orange-500 p-3 font-semibold text-white"
+        >
+          Imprimir
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
