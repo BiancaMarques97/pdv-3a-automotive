@@ -346,6 +346,21 @@ async function handleSendEmail(order: any) {
               data={selectedOrder.data}
             />
 
+      <div className="mt-4 flex gap-3">
+        <button
+          onClick={() => setPreviewOpen(false)}
+          className="flex-1 rounded-2xl border p-3"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={reprintReceipt}
+          className="flex-1 rounded-2xl bg-orange-500 p-3 font-semibold text-white"
+        >
+          Imprimir
+        </button>
+      </div>
       <button
   onClick={reprintReceipt}
   className="flex-1 rounded-2xl border p-3"
