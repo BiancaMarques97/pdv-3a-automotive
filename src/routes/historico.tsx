@@ -17,7 +17,7 @@ import {
   XCircle,
 } from "lucide-react";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { pedidoAPI } from "@/services/pedido-api";
 
@@ -31,7 +31,16 @@ export const Route = createFileRoute("/historico")({
 
 function HistoricoPage() {
   const navigate = useNavigate();
-const zebra = new ZebraBluetoothService();
+
+  // useRef em vez de criar direto no corpo do componente: assim a MESMA
+  // instância (e a conexão Bluetooth que ela guarda) sobrevive entre
+  // re-renderizações da tela, em vez de recriar do zero toda hora.
+  const zebraRef = useRef<ZebraBluetoothService | null>(null);
+  if (!zebraRef.current) {
+    zebraRef.current = new ZebraBluetoothService();
+  }
+  const zebra = zebraRef.current;
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
@@ -321,55 +330,50 @@ async function handleSendEmail(order: any) {
         </div>
       </div>
 
-      {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="max-h-[90vh] overflow-auto rounded-3xl bg-white p-4">
-            <ThermalReceipt
-              customer={{
-                Codigo: selectedOrder.items[0]?.codcliente,
-                name: selectedOrder.nomecliente,
-              }}
-              items={selectedOrder.items.map((item: any) => ({
-                quantity: item.qtde,
-                price: String(item.valor_un),
-                reposto: item.reposto,
-                product: {
-                  CodProduto: item.codproduto,
-                  Codigo: item.codproduto,
-                  Descricao: item.descricao,
-                },
-              }))}
-              payment={selectedOrder.pagamento}
-              obs={selectedOrder.items[0]?.obs || ""}
-              responsavel={selectedOrder.items[0]?.responsavel || ""}
-              pedido={selectedOrder.pedido}
-              data={selectedOrder.data}
-            />
+    {selectedOrder && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div className="max-h-[90vh] overflow-auto rounded-3xl bg-white p-4">
+      <ThermalReceipt
+        customer={{
+          Codigo: selectedOrder.items[0]?.codcliente,
+          name: selectedOrder.nomecliente,
+        }}
+        items={selectedOrder.items.map((item: any) => ({
+          quantity: item.qtde,
+          price: String(item.valor_un),
+          reposto: item.reposto,
+          product: {
+            CodProduto: item.codproduto,
+            Codigo: item.codproduto,
+            Descricao: item.descricao,
+          },
+        }))}
+        payment={selectedOrder.pagamento}
+        obs={selectedOrder.items[0]?.obs || ""}
+        responsavel={selectedOrder.items[0]?.responsavel || ""}
+        pedido={selectedOrder.pedido}
+        data={selectedOrder.data}
+        assinatura={selectedOrder.items[0]?.assinatura}
+      />
 
       <div className="mt-4 flex gap-3">
         <button
-          onClick={() => setPreviewOpen(false)}
-          className="flex-1 rounded-2xl border p-3"
+          onClick={() => setSelectedOrder(null)}
+          className="flex-1 rounded-2xl border p-3 cursor-pointer"
         >
           Cancelar
         </button>
 
         <button
           onClick={reprintReceipt}
-          className="flex-1 rounded-2xl bg-orange-500 p-3 font-semibold text-white"
+          className="flex-1 rounded-2xl bg-orange-500/80 p-3 font-semibold text-white cursor-pointer hover:bg-orange-500 shadow-sm"
         >
           Imprimir
         </button>
       </div>
-      <button
-  onClick={reprintReceipt}
-  className="flex-1 rounded-2xl border p-3"
->
-  Reimprimir
-</button>
-          </div>
-        </div>
-      )}
+    </div>
+  </div>
+)}
 
            {toast && (
   <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">

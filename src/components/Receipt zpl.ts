@@ -146,7 +146,7 @@ export function buildReceiptZPL({
   // ---- CABEÇALHO ----------------------------------------------------
   centerText("Auto Peças e Acessórios", FONT_SMALL);
   centerText("CNPJ 17.242.529/0001-14", FONT_SMALL);
-  centerText("Tel: (35)99862-5845", FONT_SMALL);
+  centerText("Tel: (35)99862-5845 / (35)98413-0344", FONT_SMALL);
   dashedLine();
 
   // ---- PEDIDO ---------------------------------------------------------

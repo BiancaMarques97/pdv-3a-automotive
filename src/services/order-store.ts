@@ -53,6 +53,11 @@ export type OrderStore = {
 
   dataFinalizacao: string | null;
 
+  // Assinatura do cliente (PNG base64), obrigatória só quando o
+  // pagamento é "A Receber". Guardada aqui pra sobreviver até a tela
+  // de pedido-finalizado e ser exibida depois no canhoto/histórico.
+  assinatura: string | null;
+
   setCustomer: (customer: Customer) => void;
 
   setItems: (items: OrderItem[]) => void;
@@ -64,6 +69,8 @@ export type OrderStore = {
   setResponsavel: (responsavel: string) => void;
 
   setPedido: (pedido: string, dataFinalizacao: string) => void;
+
+  setAssinatura: (assinatura: string | null) => void;
 
   clear: () => void;
 };
@@ -82,6 +89,8 @@ export const useOrderStore = create<OrderStore>((set) => ({
   pedido: null,
 
   dataFinalizacao: null,
+
+  assinatura: null,
 
   setCustomer: (customer) =>
     set({
@@ -114,6 +123,11 @@ export const useOrderStore = create<OrderStore>((set) => ({
       dataFinalizacao,
     }),
 
+  setAssinatura: (assinatura) =>
+    set({
+      assinatura,
+    }),
+
   clear: () =>
     set({
       customer: null,
@@ -129,5 +143,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
       pedido: null,
 
       dataFinalizacao: null,
+
+      assinatura: null,
     }),
 }));

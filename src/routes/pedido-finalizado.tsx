@@ -15,7 +15,7 @@ import { useOrderStore } from "@/services/order-store";
 import { buildReceiptZPL } from "@/components/Receipt zpl";
 
 import { ZebraBluetoothService } from "@/components/zebra-bluetooth";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export const Route = createFileRoute("/pedido-finalizado")({
   component: PedidoFinalizadoPage,
@@ -25,7 +25,14 @@ function PedidoFinalizadoPage() {
   const navigate = useNavigate();
 
   // STORE
-const zebra = new ZebraBluetoothService();
+  // useRef em vez de criar direto no corpo do componente: assim a MESMA
+  // instância (e a conexão Bluetooth que ela guarda) sobrevive entre
+  // re-renderizações da tela, em vez de recriar do zero toda hora.
+  const zebraRef = useRef<ZebraBluetoothService | null>(null);
+  if (!zebraRef.current) {
+    zebraRef.current = new ZebraBluetoothService();
+  }
+  const zebra = zebraRef.current;
 
   const customer = useOrderStore((state) => state.customer);
 
@@ -40,6 +47,11 @@ const zebra = new ZebraBluetoothService();
   const pedido = useOrderStore((state) => state.pedido);
 
   const dataFinalizacao = useOrderStore((state) => state.dataFinalizacao);
+
+  // Assinatura capturada no checkout (só existe quando o pagamento foi
+  // "A Receber"). Precisa ser lida do store e passada pro ThermalReceipt
+  // pra aparecer no canhoto — sem isso ela fica perdida.
+  const assinatura = useOrderStore((state) => state.assinatura);
 
   const clear = useOrderStore((state) => state.clear);
 
@@ -286,6 +298,9 @@ async function printReceipt() {
           payment={payment}
           obs={obs}
           responsavel={responsavel}
+          pedido={pedido ?? undefined}
+          data={dataFinalizacao ?? undefined}
+          assinatura={assinatura}
         />
       </div>
 
@@ -301,6 +316,7 @@ async function printReceipt() {
   responsavel={responsavel}
   pedido={pedido ?? undefined}
   data={dataFinalizacao ?? undefined}
+  assinatura={assinatura}
 />
 
       <div className="mt-4 flex gap-3">
@@ -313,7 +329,7 @@ async function printReceipt() {
 
         <button
           onClick={printReceipt}
-          className="flex-1 rounded-2xl bg-orange-500 p-3 font-semibold text-white"
+          className="flex-1 rounded-2xl bg-orange-500/80 p-3 font-semibold text-white cursor-pointer hover:bg-orange-500 shadow-sm"
         >
           Imprimir
         </button>

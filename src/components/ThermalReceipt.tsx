@@ -15,9 +15,14 @@ type ThermalReceiptProps = {
 
   responsavel: string;
 
-  pedido?: string;
+  pedido?: number | string;
 
   data?: string;
+
+  // PNG base64 (data URL) da assinatura do cliente, capturada no
+  // checkout quando o pagamento é "A Receber". Só é exibida aqui, no
+  // canhoto HTML — não vai pro cupom impresso na Zebra (ZPL).
+  assinatura?: string | null;
 };
 
 function fmtBRL(value: number) {
@@ -28,7 +33,10 @@ function fmtBRL(value: number) {
 }
 
 export const ThermalReceipt = forwardRef<HTMLDivElement, ThermalReceiptProps>(
-  function ThermalReceipt({ customer, items, payment, obs, responsavel, pedido, data }, ref) {
+  function ThermalReceipt(
+    { customer, items, payment, obs, responsavel, pedido, data, assinatura },
+    ref,
+  ) {
     const total = items.reduce(
       (acc, item) => acc + item.quantity * Number(item.price.replace(",", ".")),
       0,
@@ -36,7 +44,7 @@ export const ThermalReceipt = forwardRef<HTMLDivElement, ThermalReceiptProps>(
 
     const totalQty = items.reduce((acc, item) => acc + item.quantity, 0);
 
-    const pedidoNumber = pedido ?? `PDV-${Date.now()}`;
+    const pedidoNumber = pedido ?? Date.now();
 
     const dt = data ? new Date(data) : new Date();
 
@@ -139,6 +147,24 @@ export const ThermalReceipt = forwardRef<HTMLDivElement, ThermalReceiptProps>(
             <div className="my-2 border-t border-dashed border-black" />
 
             <div className="text-[12px]">Obs: {obs}</div>
+          </>
+        ) : null}
+
+        {/* ASSINATURA (só aparece se existir — pedidos "A Receber") */}
+
+        {assinatura ? (
+          <>
+            <div className="my-2 border-t border-dashed border-black" />
+
+            <div className="text-[12px] font-bold">ASSINATURA DO CLIENTE</div>
+
+            <div className="mt-1 rounded border border-black/20 bg-white p-1">
+              <img
+                src={assinatura}
+                alt="Assinatura do cliente"
+                className="mx-auto h-16 object-contain"
+              />
+            </div>
           </>
         ) : null}
 

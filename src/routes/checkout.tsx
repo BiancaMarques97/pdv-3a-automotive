@@ -6,6 +6,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { useOrderStore } from "@/services/order-store";
 import { pedidoAPI } from "@/services/pedido-api";
+import { SignaturePad } from "@/components/SignaturePad";
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
@@ -34,6 +35,20 @@ function CheckoutPage() {
 
   const setPedido = useOrderStore((state) => state.setPedido);
 
+  const assinatura = useOrderStore((state) => state.assinatura);
+
+  const setAssinatura = useOrderStore((state) => state.setAssinatura);
+
+  // "A Receber" exige assinatura do cliente confirmando o recebimento
+  // das peças, já que o pagamento fica pendente.
+  const requiresSignature = payment === "A Receber";
+
+  // Botão só fica desabilitado quando a forma de pagamento exige
+  // assinatura E ainda não tem uma capturada. Trocando pra qualquer
+  // outra forma de pagamento, isso deixa de valer automaticamente
+  // (já que requiresSignature vira false).
+  const canFinalize = !requiresSignature || !!assinatura;
+
   // TOTAL
 
   const total = items.reduce(
@@ -46,6 +61,7 @@ function CheckoutPage() {
   async function finalizeOrder() {
     console.log(items);
     if (!customer) return;
+    if (!canFinalize) return;
 
     const pedido = await pedidoAPI.gerarNumeroPedido();
     const dataFinalizacao = new Date().toISOString();
@@ -84,6 +100,10 @@ function CheckoutPage() {
       pagamento: payment,
 
       obs: obs,
+
+      // Só grava a assinatura de verdade quando o pagamento é "A
+      // Receber" (nos outros casos fica null, já que não foi exigida).
+      assinatura: requiresSignature ? assinatura : null,
     }));
 
     try {
@@ -181,6 +201,24 @@ function CheckoutPage() {
                 </select>
               </div>
 
+              {/* ASSINATURA (só aparece quando "A Receber" está selecionado) */}
+
+              {requiresSignature && (
+                <div>
+                  <label className="mb-2 block text-sm font-medium">
+                    Assinatura do cliente <span className="text-red-500">*</span>
+                  </label>
+
+                  <SignaturePad onChange={setAssinatura} />
+
+                  {!assinatura && (
+                    <div className="mt-2 text-xs text-red-500">
+                      Obrigatório assinar pra finalizar um pedido "A Receber".
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* RESPONSAVEL */}
 
               <div>
@@ -240,7 +278,8 @@ function CheckoutPage() {
           </div>
           <button
             onClick={finalizeOrder}
-            className="mt-6 h-14 w-full rounded-2xl bg-orange-500/80 text-lg font-semibold text-white shadow-lg"
+            disabled={!canFinalize}
+            className="mt-6 h-14 w-full rounded-2xl bg-orange-500/80 text-lg font-semibold text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-40"
           >
             Finalizar Pedido
           </button>
