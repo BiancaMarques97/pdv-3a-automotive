@@ -158,7 +158,7 @@ function CheckoutPage() {
           <div className="mt-6 grid gap-6 md:grid-cols-2">
             {/* ESQUERDA */}
 
-            <div className="space-y-4">
+            <div className="min-w-0 space-y-4">
               {/* PAGAMENTO */}
 
               <div>
@@ -204,7 +204,7 @@ function CheckoutPage() {
               {/* ASSINATURA (só aparece quando "A Receber" está selecionado) */}
 
               {requiresSignature && (
-                <div>
+                <div className="min-w-0">
                   <label className="mb-2 block text-sm font-medium">
                     Assinatura do cliente <span className="text-red-500">*</span>
                   </label>

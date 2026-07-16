@@ -16,25 +16,29 @@ export function SignaturePad({ onChange, height = 200 }: SignaturePadProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const drawingRef = useRef(false);
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
+  const hasSignatureRef = useRef(false);
   const [hasSignature, setHasSignature] = useState(false);
 
   // Ajusta o canvas pra resolução real da tela (evita traço borrado em
-  // telas de alta densidade de pixels) e redimensiona com o container.
+  // telas de alta densidade de pixels) e acompanha o tamanho do
+  // container — usando ResizeObserver em vez do evento "resize" da
+  // janela, porque o container pode mudar de tamanho por motivos que
+  // não disparam esse evento (grid virando 1 coluna, modal abrindo,
+  // sidebar recolhendo etc). É exatamente isso que causava o campo
+  // "quebrar" em telas menores.
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
 
-    function resize() {
+    function resize(width: number) {
       const canvas = canvasRef.current;
-      const container = containerRef.current;
-      if (!canvas || !container) return;
+      if (!canvas || width <= 0) return;
 
       const ratio = window.devicePixelRatio || 1;
-      const width = container.clientWidth;
 
       // Preserva o desenho existente ao redimensionar
-      const prevDataUrl = hasSignature ? canvas.toDataURL() : null;
+      const prevDataUrl = hasSignatureRef.current ? canvas.toDataURL() : null;
 
       canvas.width = width * ratio;
       canvas.height = height * ratio;
@@ -56,9 +60,17 @@ export function SignaturePad({ onChange, height = 200 }: SignaturePadProps) {
       }
     }
 
-    resize();
-    window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) resize(entry.contentRect.width);
+    });
+
+    observer.observe(container);
+
+    // Primeira medição, caso o ResizeObserver demore a disparar
+    resize(container.clientWidth);
+
+    return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [height]);
 
@@ -87,7 +99,10 @@ export function SignaturePad({ onChange, height = 200 }: SignaturePadProps) {
     ctx.stroke();
     lastPointRef.current = point;
 
-    if (!hasSignature) setHasSignature(true);
+    if (!hasSignatureRef.current) {
+      hasSignatureRef.current = true;
+      setHasSignature(true);
+    }
   }
 
   function handlePointerUp() {
@@ -96,7 +111,7 @@ export function SignaturePad({ onChange, height = 200 }: SignaturePadProps) {
     lastPointRef.current = null;
 
     const canvas = canvasRef.current;
-    if (canvas && hasSignature) {
+    if (canvas && hasSignatureRef.current) {
       onChange(canvas.toDataURL("image/png"));
     }
   }
@@ -107,15 +122,16 @@ export function SignaturePad({ onChange, height = 200 }: SignaturePadProps) {
     if (canvas && ctx) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
+    hasSignatureRef.current = false;
     setHasSignature(false);
     onChange(null);
   }
 
   return (
-    <div>
+    <div className="w-full min-w-0">
       <div
         ref={containerRef}
-        className="w-full overflow-hidden rounded-2xl border-2 border-dashed bg-white"
+        className="w-full min-w-0 overflow-hidden rounded-2xl border-2 border-dashed bg-white"
       >
         <canvas
           ref={canvasRef}
@@ -123,7 +139,7 @@ export function SignaturePad({ onChange, height = 200 }: SignaturePadProps) {
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
-          className="block touch-none"
+          className="block max-w-full touch-none"
           style={{ height }}
         />
       </div>
