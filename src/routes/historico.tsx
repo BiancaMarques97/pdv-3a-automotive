@@ -15,6 +15,7 @@ import {
   Users,
   X,
   XCircle,
+  Trash2
 } from "lucide-react";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -46,6 +47,8 @@ function HistoricoPage() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [orderToDelete, setOrderToDelete] = useState<any>(null);
+const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -130,30 +133,30 @@ async function handleSendEmail(order: any) {
     setSendingId(null);
   }
 }
-  const groupedOrders = useMemo(
-    () =>
-      Object.values(
-        orders.reduce((acc: any, item: any) => {
-          if (!acc[item.pedido]) {
-            acc[item.pedido] = {
-              pedido: item.pedido,
-              nomecliente: item.nomecliente,
-              pagamento: item.pagamento,
-              data: item.data,
-              total: 0,
-              items: [],
-            };
-          }
+ const groupedOrders = useMemo(
+  () =>
+    Object.values(
+      orders.reduce((acc: any, item: any) => {
+        if (!acc[item.pedido]) {
+          acc[item.pedido] = {
+            pedido: item.pedido,
+            nomecliente: item.nomecliente,
+            pagamento: item.pagamento,
+            data: item.data,
+            total: 0,
+            items: [],
+          };
+        }
 
-          acc[item.pedido].total += Number(item.valor_total);
+        acc[item.pedido].total += Number(item.valor_total);
 
-          acc[item.pedido].items.push(item);
+        acc[item.pedido].items.push(item);
 
-          return acc;
-        }, {}),
-      ),
-    [orders],
-  );
+        return acc;
+      }, {}),
+    ).sort((a: any, b: any) => new Date(b.data).getTime() - new Date(a.data).getTime()),
+  [orders],
+);
 
   const filteredOrders = groupedOrders.filter((order: any) => {
     const term = search.toLowerCase().trim();
@@ -171,6 +174,26 @@ async function handleSendEmail(order: any) {
       codigoCliente.includes(term)
     );
   });
+
+  async function confirmDelete() {
+  if (!orderToDelete) return;
+
+  try {
+    setDeleting(true);
+
+    await pedidoAPI.deleteByPedido(orderToDelete.pedido);
+
+    setOrders((prev) => prev.filter((item: any) => item.pedido !== orderToDelete.pedido));
+
+    setToast({ type: "success", message: "O pedido foi excluído permanentemente!" });
+  } catch (err) {
+    console.error(err);
+    setToast({ type: "error", message: "Não foi possível excluir o pedido. Tente novamente!" });
+  } finally {
+    setDeleting(false);
+    setOrderToDelete(null);
+  }
+}
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -268,9 +291,18 @@ async function handleSendEmail(order: any) {
               key={order.pedido}
               className="rounded-3xl border bg-background p-5 shadow-md"
             >
-              <div className="text-lg font-bold">
-                {order.nomecliente} - {order.items?.[0]?.codcliente}
-              </div>
+             <div className="flex items-center justify-between gap-2">
+  <div className="text-lg font-bold">
+    {order.nomecliente} - {order.items?.[0]?.codcliente}
+  </div>
+
+  <button
+    onClick={() => setOrderToDelete(order)}
+    className="shrink-0 rounded-full p-2  bg-red-50 text-red-600 cursor-pointer"
+  >
+    <Trash2 className="h-5 w-5" />
+  </button>
+</div>
 
                <div className="mt-3">
                 <span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-semibold text-orange-700">
@@ -310,19 +342,14 @@ async function handleSendEmail(order: any) {
                   onClick={() => exportOrderXLS(order)}
                   className="flex flex-1 items-center justify-center gap-2  border-[1.5px] rounded-2xl bg-orange-500/80 text-sm font-semibold text-white p-3 cursor-pointer hover:bg-orange-500 shadow-sm"
                 >
-                  <FileDownIcon className="h-5 w-5" /> Baixar XML
+                  <FileDownIcon className="h-5 w-5" /> Baixar XLS
                 </button>
-
-                
-
-
-
 <button
                     onClick={() => handleSendEmail(order)}
   disabled={sendingId === order.pedido}
                   className="flex flex-1 items-center justify-center gap-2  border-[1.5px] rounded-2xl bg-orange-500/80 text-sm font-semibold text-white p-3 cursor-pointer hover:bg-orange-500 shadow-sm"
                 >
-                  <Mail className="h-5 w-5" /> Enviar XML por Email
+                  <Mail className="h-5 w-5" /> Enviar XLS por Email
                 </button>
               </div>
             </div>
@@ -385,7 +412,7 @@ async function handleSendEmail(order: any) {
       )}
 
       <div className="mt-5 text-2xl font-bold">
-        {toast.type === "success" ? "Enviado!" : "Erro"}
+        {toast.type === "success" ? "Sucesso!" : "Erro"}
       </div>
 
       <div className="mt-2 text-lg text-muted-foreground">
@@ -398,6 +425,39 @@ async function handleSendEmail(order: any) {
       >
         OK
       </button>
+    </div>
+  </div>
+)}
+
+{orderToDelete && (
+  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+    <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
+      <Trash2 className="mx-auto h-16 w-16 text-red-500" />
+
+      <div className="mt-5 text-2xl font-bold">Excluir pedido?</div>
+
+      <div className="mt-2 text-base text-muted-foreground">
+        O pedido <strong>#{orderToDelete.pedido}</strong> ({orderToDelete.nomecliente}) será
+        excluído permanentemente. Essa ação não pode ser desfeita.
+      </div>
+
+      <div className="mt-6 flex gap-3">
+        <button
+          onClick={() => setOrderToDelete(null)}
+          disabled={deleting}
+          className="flex-1 rounded-2xl border p-4 text-lg font-semibold text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={confirmDelete}
+          disabled={deleting}
+          className="flex-1 rounded-2xl bg-red-500 p-4 text-lg font-semibold text-white shadow-sm hover:bg-red-600 disabled:opacity-50"
+        >
+          {deleting ? "Excluindo..." : "Excluir"}
+        </button>
+      </div>
     </div>
   </div>
 )}

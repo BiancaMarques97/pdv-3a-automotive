@@ -24,9 +24,9 @@ export function exportOrderXLS(order: any) {
 
     Desc_Comissao: item.desc_comissao,
 
-    Data: new Date(item.data).toLocaleString("pt-BR"),
+    Data: new Date(item.data).toLocaleDateString("pt-BR"),
 
-    Data_Entrega: new Date(item.data_entrega).toLocaleString("pt-BR"),
+    Data_Entrega: new Date(item.data_entrega).toLocaleDateString("pt-BR"),
 
     Responsavel: item.responsavel,
 
@@ -63,9 +63,9 @@ export function exportOrderXLS(order: any) {
     { wch: 40 },
   ];
 
-  const customerName = order.nomecliente.replaceAll(" ", "_").replaceAll("/", "-");
+  const codCliente = order.items?.[0]?.codcliente ?? "";
 
-  const fileName = `${customerName}_${order.pedido}.xls`;
+  const fileName = `${order.pedido}-${codCliente}.xls`;
 
   XLSX.writeFile(workbook, fileName);
 }

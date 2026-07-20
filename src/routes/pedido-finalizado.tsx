@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { useNavigate } from "@tanstack/react-router";
 
-import { CheckCircle2, FileSpreadsheet, Home, Printer } from "lucide-react";
+import { CheckCircle2, FileSpreadsheet, Home, Mail, Printer, XCircle } from "lucide-react";
 
 import html2canvas from "html2canvas";
 
@@ -13,6 +13,9 @@ import { ThermalReceipt } from "@/components/ThermalReceipt";
 import { useOrderStore } from "@/services/order-store";
 
 import { buildReceiptZPL } from "@/components/Receipt zpl";
+
+// ...
+import { sendOrderEmail } from "@/services/send-order-email";
 
 import { ZebraBluetoothService } from "@/components/zebra-bluetooth";
 import { useRef, useState } from "react";
@@ -47,6 +50,7 @@ function PedidoFinalizadoPage() {
   const pedido = useOrderStore((state) => state.pedido);
 
   const dataFinalizacao = useOrderStore((state) => state.dataFinalizacao);
+  
 
   // Assinatura capturada no checkout (só existe quando o pagamento foi
   // "A Receber"). Precisa ser lida do store e passada pro ThermalReceipt
@@ -57,6 +61,9 @@ function PedidoFinalizadoPage() {
 
   const [previewOpen, setPreviewOpen] = useState(false);
 
+  const [sendingEmail, setSendingEmail] = useState(false);
+
+const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // TOTAL
 
@@ -145,18 +152,17 @@ async function printReceipt() {
   }
   // XLS
 
-  function exportXLS() {
+ function exportXLS() {
     if (!customer || items.length === 0) {
       alert("Pedido vazio");
-
       return;
     }
 
     const pedidoLabel = pedido ?? String(Date.now());
 
     const now = dataFinalizacao
-      ? new Date(dataFinalizacao).toLocaleString("pt-BR")
-      : new Date().toLocaleString("pt-BR");
+      ? new Date(dataFinalizacao).toLocaleDateString("pt-BR")
+      : new Date().toLocaleDateString("pt-BR");
 
     const rows = items.map((item) => ({
       Pedido: pedidoLabel,
@@ -223,20 +229,66 @@ async function printReceipt() {
 
     // NOME
 
-    const date = new Date().toLocaleDateString("pt-BR").replaceAll("/", "-");
-
-    const customerName = customer.name.replaceAll(" ", "_").replaceAll("/", "-");
-
-    const fileName = `${customerName}_${date}.xls`;
+    const fileName = `${pedidoLabel}-${customer.Codigo}.xls`;
 
     // DOWNLOAD
 
     XLSX.writeFile(workbook, fileName);
   }
+  async function handleSendEmail() {
+  if (!customer || items.length === 0) {
+    alert("Pedido vazio");
+    return;
+  }
+
+  const pedidoLabel = pedido ?? String(Date.now());
+  const dataAtual = dataFinalizacao ?? new Date().toISOString();
+
+  const emailItems = items.map((item) => ({
+    codcliente: customer.Codigo,
+    nomecliente: customer.name,
+    codproduto: item.product.CodProduto,
+    descricao: item.product.Descricao,
+    qtde: item.quantity,
+    qtde_entregue: item.quantity,
+    qtde_pendente: 0,
+    valor_un: Number(item.price.replace(",", ".")),
+    valor_total: item.quantity * Number(item.price.replace(",", ".")),
+    desc_comissao: 0,
+    data: dataAtual,
+    data_entrega: dataAtual,
+    responsavel,
+    reposto: item.reposto,
+    pagamento: payment,
+    obs: obs || "",
+  }));
+
+  try {
+    setSendingEmail(true);
+
+    await sendOrderEmail({
+      data: {
+        pedido: pedidoLabel,
+        nomecliente: customer.name,
+        pagamento: payment,
+        data: dataAtual,
+        total,
+        items: emailItems,
+      },
+    });
+
+    setToast({ type: "success", message: "O pedido foi enviado por e-mail com sucesso." });
+  } catch (err) {
+    console.error(err);
+    setToast({ type: "error", message: "Não foi possível enviar o e-mail. Tente novamente." });
+  } finally {
+    setSendingEmail(false);
+  }
+}
 
   return (
-    <div className="min-h-screen bg-muted/30 p-4">
-      <div className="mx-auto max-w-2xl">
+    <div className="min-h-screen bg-muted/30 p-4 flex items-start md:items-center justify-center">
+      <div className="mx-auto max-w-2xl w-full">
         <div className="rounded-3xl border bg-background p-8 shadow-sm">
           {/* SUCCESS */}
 
@@ -250,43 +302,47 @@ async function printReceipt() {
 
           {/* BUTTONS */}
 
-          <div className="mt-10 grid grid-cols-2 gap-5">
-            {/* IMPRIMIR */}
+       <div className="mt-10 grid grid-cols-2 gap-5">
+  {/* CLIENTES */}
+  <button
+    onClick={() => {
+      clear();
+      navigate({ to: "/clientes" });
+    }}
+    className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted"
+  >
+    <Home className="h-7 w-7" />
+    Clientes
+  </button>
 
-         <button
-  onClick={() => setPreviewOpen(true)}
-  className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted"
->
-  <Printer className="h-7 w-7" />
-  Imprimir
-</button>
+  {/* IMPRIMIR */}
+  <button
+    onClick={() => setPreviewOpen(true)}
+    className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted"
+  >
+    <Printer className="h-7 w-7" />
+    Imprimir
+  </button>
 
-            {/* XLS */}
+  {/* XLS - BAIXAR */}
+  <button
+    onClick={exportXLS}
+    className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted"
+  >
+    <FileSpreadsheet className="h-7 w-7" />
+    Baixar XLS
+  </button>
 
-            <button
-              onClick={exportXLS}
-              className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted"
-            >
-              <FileSpreadsheet className="h-7 w-7" />
-              XLS
-            </button>
-
-            {/* CLIENTES */}
-
-            <button
-              onClick={() => {
-                clear();
-
-                navigate({
-                  to: "/clientes",
-                });
-              }}
-              className="col-span-2 flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted"
-            >
-              <Home className="h-7 w-7" />
-              Clientes
-            </button>
-          </div>
+  {/* XLS - ENVIAR POR EMAIL */}
+  <button
+    onClick={handleSendEmail}
+    disabled={sendingEmail}
+    className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted disabled:opacity-50"
+  >
+    <Mail className="h-7 w-7" />
+    {sendingEmail ? "Enviando..." : "Enviar XLS por E-mail"}
+  </button>
+</div>
         </div>
       </div>
 
@@ -335,6 +391,33 @@ async function printReceipt() {
         </button>
       </div>
 
+    </div>
+  </div>
+)}
+
+{toast && (
+  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+    <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
+      {toast.type === "success" ? (
+        <CheckCircle2 className="mx-auto h-20 w-20 text-green-500" />
+      ) : (
+        <XCircle className="mx-auto h-20 w-20 text-red-500" />
+      )}
+
+      <div className="mt-5 text-2xl font-bold">
+        {toast.type === "success" ? "Enviado!" : "Erro"}
+      </div>
+
+      <div className="mt-2 text-lg text-muted-foreground">
+        {toast.message}
+      </div>
+
+      <button
+        onClick={() => setToast(null)}
+        className="mt-6 w-full rounded-2xl p-4 text-lg font-semibold text-white shadow-sm bg-orange-500/80"
+      >
+        OK
+      </button>
     </div>
   </div>
 )}

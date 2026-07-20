@@ -41,7 +41,7 @@ function CheckoutPage() {
 
   // "A Receber" exige assinatura do cliente confirmando o recebimento
   // das peças, já que o pagamento fica pendente.
-  const requiresSignature = payment === "A Receber";
+  const requiresSignature = payment === "A Receber" || payment === "Consignado";
 
   // Botão só fica desabilitado quando a forma de pagamento exige
   // assinatura E ainda não tem uma capturada. Trocando pra qualquer
@@ -212,10 +212,10 @@ function CheckoutPage() {
                   <SignaturePad onChange={setAssinatura} />
 
                   {!assinatura && (
-                    <div className="mt-2 text-xs text-red-500">
-                      Obrigatório assinar pra finalizar um pedido "A Receber".
-                    </div>
-                  )}
+  <div className="mt-2 text-xs text-red-500">
+    Obrigatório assinar pra finalizar um pedido "{payment}".
+  </div>
+)}
                 </div>
               )}
 
@@ -229,9 +229,9 @@ function CheckoutPage() {
                   onChange={(e) => setResponsavel(e.target.value)}
                   className="h-14 w-full rounded-2xl border px-4"
                 >
-                  <option value="Luiz Carlos">Luiz Carlos</option>
+                  <option value="LUIZ FARIA">LUIZ FARIA</option>
 
-                  <option value="Fábio Afonso">Fábio Afonso</option>
+                  <option value="FABIO AFONSO">FABIO AFONSO</option>
                 </select>
               </div>
 

@@ -84,7 +84,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
   obs: "",
 
-  responsavel: "Luiz Carlos",
+  responsavel: "LUIZ FARIA",
 
   pedido: null,
 
@@ -138,7 +138,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
       obs: "",
 
-      responsavel: "Luiz Carlos",
+      responsavel: "LUIZ FARIA",
 
       pedido: null,
 

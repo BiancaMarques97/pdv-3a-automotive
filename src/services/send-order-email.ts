@@ -33,7 +33,7 @@ type SendOrderEmailData = {
 
 function formatDate(value?: string) {
   if (!value) return "";
-  return new Date(value).toLocaleString("pt-BR");
+  return new Date(value).toLocaleDateString("pt-BR");
 }
 
 function buildOrderXlsBuffer(order: SendOrderEmailData) {
@@ -62,7 +62,8 @@ function buildOrderXlsBuffer(order: SendOrderEmailData) {
   XLSX.utils.book_append_sheet(workbook, worksheet, "Pedidos");
 
   // Gera o arquivo como Buffer (base64 é o formato aceito pelo Resend)
-  const buffer = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
+  // bookType "biff8" = formato .xls real (Excel 97-2004), não .xlsx
+  const buffer = XLSX.write(workbook, { type: "base64", bookType: "biff8" });
   return buffer;
 }
 
@@ -73,18 +74,20 @@ export const sendOrderEmail = createServerFn({ method: "POST" })
 
     const fileBase64 = buildOrderXlsBuffer(data);
 
+    const codCliente = data.items[0]?.codcliente ?? "";
+
     const { data: result, error } = await resend.emails.send({
       from: process.env.ORDER_EMAIL_FROM as string,
       to: process.env.ORDER_EMAIL_TO as string,
       subject: `Pedido #${data.pedido} - ${data.nomecliente}`,
       html: `
-        <p>Olá, segue em anexo o pedido <strong>#${data.pedido}</strong>.</p>
+        <p>Segue em anexo o pedido <strong>#${data.pedido}</strong>.</p>
         <p>Cliente: ${data.nomecliente}</p>
         <p>Total: R$ ${Number(data.total).toFixed(2)}</p>
       `,
       attachments: [
         {
-          filename: `pedido-${data.pedido}.xlsx`,
+          filename: `${data.pedido}-${codCliente}.xls`,
           content: fileBase64,
         },
       ],
