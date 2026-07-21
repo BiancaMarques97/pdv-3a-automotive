@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PedidoFinalizadoRouteImport } from './routes/pedido-finalizado'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as HistoricoRouteImport } from './routes/historico'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as CheckoutRouteImport } from './routes/checkout'
@@ -21,11 +20,6 @@ import { Route as ClienteIdRouteImport } from './routes/cliente.$id'
 const PedidoFinalizadoRoute = PedidoFinalizadoRouteImport.update({
   id: '/pedido-finalizado',
   path: '/pedido-finalizado',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoricoRoute = HistoricoRouteImport.update({
@@ -64,7 +58,6 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
   '/historico': typeof HistoricoRoute
-  '/login': typeof LoginRoute
   '/pedido-finalizado': typeof PedidoFinalizadoRoute
   '/cliente/$id': typeof ClienteIdRoute
   '/novo-pedido/$id': typeof NovoPedidoIdRoute
@@ -74,7 +67,6 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
   '/historico': typeof HistoricoRoute
-  '/login': typeof LoginRoute
   '/pedido-finalizado': typeof PedidoFinalizadoRoute
   '/cliente/$id': typeof ClienteIdRoute
   '/novo-pedido/$id': typeof NovoPedidoIdRoute
@@ -85,7 +77,6 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
   '/historico': typeof HistoricoRoute
-  '/login': typeof LoginRoute
   '/pedido-finalizado': typeof PedidoFinalizadoRoute
   '/cliente/$id': typeof ClienteIdRoute
   '/novo-pedido/$id': typeof NovoPedidoIdRoute
@@ -97,7 +88,6 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/clientes'
     | '/historico'
-    | '/login'
     | '/pedido-finalizado'
     | '/cliente/$id'
     | '/novo-pedido/$id'
@@ -107,7 +97,6 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/clientes'
     | '/historico'
-    | '/login'
     | '/pedido-finalizado'
     | '/cliente/$id'
     | '/novo-pedido/$id'
@@ -117,7 +106,6 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/clientes'
     | '/historico'
-    | '/login'
     | '/pedido-finalizado'
     | '/cliente/$id'
     | '/novo-pedido/$id'
@@ -128,7 +116,6 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ClientesRoute: typeof ClientesRoute
   HistoricoRoute: typeof HistoricoRoute
-  LoginRoute: typeof LoginRoute
   PedidoFinalizadoRoute: typeof PedidoFinalizadoRoute
   ClienteIdRoute: typeof ClienteIdRoute
   NovoPedidoIdRoute: typeof NovoPedidoIdRoute
@@ -141,13 +128,6 @@ declare module '@tanstack/react-router' {
       path: '/pedido-finalizado'
       fullPath: '/pedido-finalizado'
       preLoaderRoute: typeof PedidoFinalizadoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/historico': {
@@ -200,7 +180,6 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ClientesRoute: ClientesRoute,
   HistoricoRoute: HistoricoRoute,
-  LoginRoute: LoginRoute,
   PedidoFinalizadoRoute: PedidoFinalizadoRoute,
   ClienteIdRoute: ClienteIdRoute,
   NovoPedidoIdRoute: NovoPedidoIdRoute,

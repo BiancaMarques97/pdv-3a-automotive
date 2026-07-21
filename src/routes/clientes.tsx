@@ -1,17 +1,27 @@
 import logo3a from "@/assets/logo-3a.png";
 import { Button } from "@/components/layout/button";
 import { Input } from "@/components/layout/input";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { CheckCircle2, ChevronRight, FileText, MapPin, Phone, Search, Upload, Users, X, XCircle } from "lucide-react";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { CheckCircle2, ChevronRight, FileText, LogOut, MapPin, Phone, Search, Upload, Users, X, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import * as XLSX from "xlsx";
-
 import { customersAPI } from "@/services/customers";
+// import { isAuthenticated } from "@/lib/auth";
+import { supabase } from "@/services/supabase";
 
 export const Route = createFileRoute("/clientes")({
+  // beforeLoad: async () => {
+  //   const logged = await isAuthenticated();
+
+  //   if (!logged) {
+  //     throw redirect({
+  //       to: "/login",
+  //     });
+  //   }
+  // },
+
   component: ClientesPage,
 });
-
 type Customer = {
   CodCliente: string;
   Codigo: string;
@@ -24,6 +34,14 @@ type Customer = {
 
  function ClientesPage() {
   const navigate = useNavigate();
+
+//   async function handleLogout() {
+//   await supabase.auth.signOut();
+
+//   navigate({
+//     to: "/login",
+//   });
+// }
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -38,6 +56,8 @@ type Customer = {
   const [pendingImport, setPendingImport] = useState<any[] | null>(null);
 
 const [importing, setImporting] = useState(false);
+
+
 
   async function handleImport(event: React.ChangeEvent<HTMLInputElement>) {
   const file = event.target.files?.[0];
@@ -168,27 +188,26 @@ async function confirmImport() {
           {/* SIDEBAR */}
 
           <div className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col border-r bg-white p-4 shadow-xl">
-            {" "}
             <div className="mb-8 flex items-start justify-between">
-              {" "}
+
               <div className="flex w-full flex-col items-center">
-                {" "}
+  
                 <img
                   src={logo3a}
                   alt="3A Automotive"
                   className="mb-4 h-28 w-28 object-contain"
-                />{" "}
-              </div>{" "}
+                />
+              </div>
               <button
                 onClick={() => setMenuOpen(false)}
                 className="rounded-md p-2 text-zinc-500 hover:bg-zinc-100"
               >
-                {" "}
-                <X size={18} />{" "}
-              </button>{" "}
-            </div>{" "}
+  
+                <X size={18} />
+              </button>
+            </div>
             <div className="flex flex-col gap-3">
-              {" "}
+
               <button
                 onClick={() => {
                   navigate({ to: "/clientes" });
@@ -196,9 +215,9 @@ async function confirmImport() {
                 }}
                 className="flex items-center gap-3 rounded-xl bg-[#F28C38] px-5 py-4 text-left font-medium text-white shadow-sm transition"
               >
-                {" "}
-                <Users size={20} /> Clientes{" "}
-              </button>{" "}
+  
+                <Users size={20} /> Clientes
+              </button>
               <button
                 onClick={() => {
                   navigate({ to: "/historico" });
@@ -206,10 +225,18 @@ async function confirmImport() {
                 }}
                 className="flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100"
               >
-                {" "}
-                <FileText size={20} /> Histórico{" "}
-              </button>{" "}
-            </div>{" "}
+  
+                <FileText size={20} /> Histórico
+              </button>
+{/* 
+              <button
+  onClick={handleLogout}
+  className="mt-auto flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-red-600 transition hover:bg-red-50"
+>
+  <LogOut size={20} />
+  Sair
+</button> */}
+            </div>
           </div>
         </>
       )}

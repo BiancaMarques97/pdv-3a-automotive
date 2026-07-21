@@ -79,9 +79,9 @@ export const sendOrderEmail = createServerFn({ method: "POST" })
     const { data: result, error } = await resend.emails.send({
       from: process.env.ORDER_EMAIL_FROM as string,
       to: process.env.ORDER_EMAIL_TO as string,
-      subject: `Pedido #${data.pedido} - ${data.nomecliente}`,
+      subject: `Pedido ${data.pedido} - ${data.nomecliente}`,
       html: `
-        <p>Segue em anexo o pedido <strong>#${data.pedido}</strong>.</p>
+        <p>Segue em anexo o pedido <strong>${data.pedido}</strong>.</p>
         <p>Cliente: ${data.nomecliente}</p>
         <p>Total: R$ ${Number(data.total).toFixed(2)}</p>
       `,

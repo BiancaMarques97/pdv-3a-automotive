@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { CheckCircle2, FileSpreadsheet, Home, Mail, Printer, XCircle } from "lucide-react";
 
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 
 import * as XLSX from "xlsx";
 
@@ -73,7 +73,7 @@ const [toast, setToast] = useState<{ type: "success" | "error"; message: string 
 
 async function printReceipt() {
   if (!customer || items.length === 0) {
-    alert("Pedido vazio");
+    setToast({ type: "error", message: "Não há itens no pedido para imprimir." });
     return;
   }
 
@@ -90,20 +90,19 @@ async function printReceipt() {
       data: dataFinalizacao ?? undefined,
     });
 
-    const sgdContinuous =
-      '! U1 setvar "ezpl.media_type" "continuous"\n';
+    const sgdContinuous = '! U1 setvar "ezpl.media_type" "continuous"\n';
 
     await zebra.print(sgdContinuous + zpl);
 
     zebra.disconnect();
 
     setPreviewOpen(false);
+    setToast({ type: "success", message: "Cupom enviado para impressão." });
   } catch (err) {
     console.error(err);
-    alert("Erro ao imprimir via Bluetooth.");
+    setToast({ type: "error", message: "Não foi possível imprimir via Bluetooth. Verifique a conexão com a impressora." });
   }
 }
-
 
   // WHATS / PNG
 
@@ -292,13 +291,17 @@ async function printReceipt() {
         <div className="rounded-3xl border bg-background p-8 shadow-sm">
           {/* SUCCESS */}
 
-          <div className="flex flex-col items-center text-center">
-            <CheckCircle2 className="h-20 w-20 text-green-600" />
+       <div className="flex flex-col items-center text-center">
+  <CheckCircle2 className="h-20 w-20 text-green-600" />
 
-            <div className="mt-4 text-3xl font-bold">Pedido finalizado!</div>
+  <div className="mt-4 text-3xl font-bold">Pedido finalizado!</div>
 
-            <div className="mt-2 text-muted-foreground">{customer?.name}</div>
-          </div>
+  <div className="mt-2 text-lg font-semibold text-orange-600">{pedido}</div>
+
+  <div className="mt-1 text-muted-foreground font-bold">
+    {customer?.Codigo} - {customer?.name}
+  </div>
+</div>
 
           {/* BUTTONS */}
 

@@ -3,8 +3,11 @@ import { sendOrderEmail } from "@/services/send-order-email";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ZebraBluetoothService } from "@/components/zebra-bluetooth";
 import { buildReceiptZPL } from "@/components/Receipt zpl";
+import html2canvas from "html2canvas-pro";
+import jsPDF from "jspdf";
 
 import {
+  Calendar,
   CalendarDays,
   CheckCircle2,
   Eye,
@@ -24,7 +27,7 @@ import { pedidoAPI } from "@/services/pedido-api";
 
 import { ThermalReceipt } from "@/components/ThermalReceipt";
 
-import { exportOrderXLS } from "@/lib/export-order-xls";
+import { exportOrderXLS, exportOrdersByPeriodXLS } from "@/lib/export-order-xls";
 
 export const Route = createFileRoute("/historico")({
   component: HistoricoPage,
@@ -33,15 +36,12 @@ export const Route = createFileRoute("/historico")({
 function HistoricoPage() {
   const navigate = useNavigate();
 
-  // useRef em vez de criar direto no corpo do componente: assim a MESMA
-  // instância (e a conexão Bluetooth que ela guarda) sobrevive entre
-  // re-renderizações da tela, em vez de recriar do zero toda hora.
   const zebraRef = useRef<ZebraBluetoothService | null>(null);
   if (!zebraRef.current) {
     zebraRef.current = new ZebraBluetoothService();
   }
   const zebra = zebraRef.current;
-
+  const receiptRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
@@ -49,6 +49,9 @@ function HistoricoPage() {
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [orderToDelete, setOrderToDelete] = useState<any>(null);
 const [deleting, setDeleting] = useState(false);
+const [periodModalOpen, setPeriodModalOpen] = useState(false);
+const [startDate, setStartDate] = useState("");
+const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -67,11 +70,9 @@ const [deleting, setDeleting] = useState(false);
 const [sendingId, setSendingId] = useState<string | null>(null);
 
 async function reprintReceipt() {
-    console.log("Entrou no printReceipt");
   if (!selectedOrder) return;
 
   try {
-    
     await zebra.connect();
 
     const zpl = buildReceiptZPL({
@@ -99,15 +100,75 @@ async function reprintReceipt() {
       data: selectedOrder.data,
     });
 
-    const sgdContinuous =
-      '! U1 setvar "ezpl.media_type" "continuous"\n';
+    const sgdContinuous = '! U1 setvar "ezpl.media_type" "continuous"\n';
 
     await zebra.print(sgdContinuous + zpl);
 
+    setToast({ type: "success", message: "Cupom enviado para impressão." });
   } catch (err) {
     console.error(err);
-    alert("Erro ao imprimir.");
+    setToast({ type: "error", message: "Não foi possível imprimir via Bluetooth. Verifique a conexão com a impressora." });
   }
+}
+
+async function downloadReceiptPDF() {
+  if (!receiptRef.current || !selectedOrder) return;
+
+  try {
+    const canvas = await html2canvas(receiptRef.current, {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      useCORS: true,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdfWidthMm = 80;
+    const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: [pdfWidthMm, pdfHeightMm],
+    });
+
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidthMm, pdfHeightMm);
+    pdf.save(`canhoto-${selectedOrder.pedido}.pdf`);
+  } catch (err) {
+    console.error(err);
+    setToast({ type: "error", message: "Não foi possível gerar o PDF. Tente novamente." });
+  }
+}
+
+function handleExportByPeriod() {
+  if (!startDate || !endDate) {
+    setToast({ type: "error", message: "Selecione a data inicial e a data final." });
+    return;
+  }
+
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T23:59:59`);
+
+  const ordersInRange = groupedOrders.filter((order: any) => {
+    const orderDate = new Date(order.data);
+    return orderDate >= start && orderDate <= end;
+  });
+
+  if (ordersInRange.length === 0) {
+    setToast({ type: "error", message: "Nenhum pedido encontrado nesse período." });
+    return;
+  }
+
+  const startLabel = startDate.split("-").reverse().join("-");
+  const endLabel = endDate.split("-").reverse().join("-");
+
+  exportOrdersByPeriodXLS(ordersInRange, startLabel, endLabel);
+
+  setPeriodModalOpen(false);
+  setToast({
+    type: "success",
+    message: `${ordersInRange.length} pedido(s) exportado(s) com sucesso.`,
+  });
 }
 
 async function handleSendEmail(order: any) {
@@ -269,15 +330,25 @@ async function handleSendEmail(order: any) {
           </>
         )}
 
-        <div className="p-5">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por pedido, cliente ou código"
-            className="h-12 w-full rounded-2xl border bg-background px-4 shadow-sm"
-          />
-        </div>
+     <div className="p-5 flex flex-col gap-3 md:flex-row">
+  <div className="relative flex-1">
+    <input
+      type="text"
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      placeholder="Buscar por pedido, cliente ou código"
+      className="h-12 w-full rounded-2xl border bg-background px-4 shadow-sm"
+    />
+  </div>
+
+  <button
+    onClick={() => setPeriodModalOpen(true)}
+    className="flex h-12 items-center justify-center gap-2 rounded-2xl border-[1.5px] bg-orange-500/80 px-5 text-sm font-semibold text-white shadow-sm hover:bg-orange-500"
+  >
+    <Calendar className="h-5 w-5" />
+    Baixar por Período
+  </button>
+</div>
 
         {filteredOrders.length === 0 && (
           <div className="m-10 mt-5 rounded-3xl border bg-background p-10 text-center text-muted-foreground shadow-md">
@@ -306,7 +377,7 @@ async function handleSendEmail(order: any) {
 
                <div className="mt-3">
                 <span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-semibold text-orange-700">
-                  #{order.pedido}
+                  {order.pedido}
                 </span>
               </div>
 
@@ -357,31 +428,43 @@ async function handleSendEmail(order: any) {
         </div>
       </div>
 
-    {selectedOrder && (
+   {selectedOrder && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
     <div className="max-h-[90vh] overflow-auto rounded-3xl bg-white p-4">
-      <ThermalReceipt
-        customer={{
-          Codigo: selectedOrder.items[0]?.codcliente,
-          name: selectedOrder.nomecliente,
-        }}
-        items={selectedOrder.items.map((item: any) => ({
-          quantity: item.qtde,
-          price: String(item.valor_un),
-          reposto: item.reposto,
-          product: {
-            CodProduto: item.codproduto,
-            Codigo: item.codproduto,
-            Descricao: item.descricao,
-          },
-        }))}
-        payment={selectedOrder.pagamento}
-        obs={selectedOrder.items[0]?.obs || ""}
-        responsavel={selectedOrder.items[0]?.responsavel || ""}
-        pedido={selectedOrder.pedido}
-        data={selectedOrder.data}
-        assinatura={selectedOrder.items[0]?.assinatura}
-      />
+      <div className="relative">
+        <div ref={receiptRef}>
+          <ThermalReceipt
+            customer={{
+              Codigo: selectedOrder.items[0]?.codcliente,
+              name: selectedOrder.nomecliente,
+            }}
+            items={selectedOrder.items.map((item: any) => ({
+              quantity: item.qtde,
+              price: String(item.valor_un),
+              reposto: item.reposto,
+              product: {
+                CodProduto: item.codproduto,
+                Codigo: item.codproduto,
+                Descricao: item.descricao,
+              },
+            }))}
+            payment={selectedOrder.pagamento}
+            obs={selectedOrder.items[0]?.obs || ""}
+            responsavel={selectedOrder.items[0]?.responsavel || ""}
+            pedido={selectedOrder.pedido}
+            data={selectedOrder.data}
+            assinatura={selectedOrder.items[0]?.assinatura}
+          />
+        </div>
+
+        <button
+          onClick={downloadReceiptPDF}
+          title="Baixar PDF"
+          className="absolute right-2 top-2 z-10 rounded-full bg-orange-500/90 p-3 text-white shadow-md hover:bg-orange-500"
+        >
+          <FileDownIcon className="h-6 w-6" />
+        </button>
+      </div>
 
       <div className="mt-4 flex gap-3">
         <button
@@ -403,7 +486,7 @@ async function handleSendEmail(order: any) {
 )}
 
            {toast && (
-  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+  <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/60 p-4">
     <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
       {toast.type === "success" ? (
         <CheckCircle2 className="mx-auto h-20 w-20 text-green-500" />
@@ -437,7 +520,7 @@ async function handleSendEmail(order: any) {
       <div className="mt-5 text-2xl font-bold">Excluir pedido?</div>
 
       <div className="mt-2 text-base text-muted-foreground">
-        O pedido <strong>#{orderToDelete.pedido}</strong> ({orderToDelete.nomecliente}) será
+        O pedido <strong>{orderToDelete.pedido}</strong> ({orderToDelete.nomecliente}) será
         excluído permanentemente. Essa ação não pode ser desfeita.
       </div>
 
@@ -456,6 +539,62 @@ async function handleSendEmail(order: any) {
           className="flex-1 rounded-2xl bg-red-500 p-4 text-lg font-semibold text-white shadow-sm hover:bg-red-600 disabled:opacity-50"
         >
           {deleting ? "Excluindo..." : "Excluir"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{periodModalOpen && (
+  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+    <div className="w-full max-w-sm rounded-3xl bg-white p-8 shadow-xl">
+      <div className="flex flex-col items-center text-center">
+        <Calendar className="h-16 w-16 text-orange-500" />
+        <div className="mt-5 text-2xl font-bold">Baixar por período</div>
+        <div className="mt-2 text-md text-muted-foreground">
+          Selecione o intervalo de datas dos pedidos
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium">Data inicial</label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="h-12 w-full rounded-2xl border px-4"
+          />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium">Data final</label>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="h-12 w-full rounded-2xl border px-4"
+          />
+        </div>
+      </div>
+
+      <div className="mt-6 flex gap-3">
+        <button
+          onClick={() => {
+            setPeriodModalOpen(false);
+            setStartDate("");
+            setEndDate("");
+          }}
+          className="flex-1 rounded-2xl border p-4 text-lg font-semibold text-zinc-600 hover:bg-zinc-100"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={handleExportByPeriod}
+          className="flex-1 rounded-2xl bg-orange-500/80 p-4 text-lg font-semibold text-white shadow-sm hover:bg-orange-500"
+        >
+          Baixar
         </button>
       </div>
     </div>

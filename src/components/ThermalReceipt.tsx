@@ -69,7 +69,7 @@ export const ThermalReceipt = forwardRef<HTMLDivElement, ThermalReceiptProps>(
         <div className="flex justify-between text-[12px]">
           <span>PEDIDO</span>
 
-          <strong>#{pedidoNumber}</strong>
+          <strong>{pedidoNumber}</strong>
         </div>
 
         <div className="flex justify-between text-[12px]">
