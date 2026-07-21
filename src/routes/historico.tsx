@@ -428,42 +428,42 @@ async function handleSendEmail(order: any) {
         </div>
       </div>
 
-   {selectedOrder && (
+  {selectedOrder && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
     <div className="max-h-[90vh] overflow-auto rounded-3xl bg-white p-4">
-      <div className="relative">
-        <div ref={receiptRef}>
-          <ThermalReceipt
-            customer={{
-              Codigo: selectedOrder.items[0]?.codcliente,
-              name: selectedOrder.nomecliente,
-            }}
-            items={selectedOrder.items.map((item: any) => ({
-              quantity: item.qtde,
-              price: String(item.valor_un),
-              reposto: item.reposto,
-              product: {
-                CodProduto: item.codproduto,
-                Codigo: item.codproduto,
-                Descricao: item.descricao,
-              },
-            }))}
-            payment={selectedOrder.pagamento}
-            obs={selectedOrder.items[0]?.obs || ""}
-            responsavel={selectedOrder.items[0]?.responsavel || ""}
-            pedido={selectedOrder.pedido}
-            data={selectedOrder.data}
-            assinatura={selectedOrder.items[0]?.assinatura}
-          />
-        </div>
-
+      <div className="mb-3 flex justify-end">
         <button
           onClick={downloadReceiptPDF}
-          title="Baixar PDF"
-          className="absolute right-2 top-2 z-10 rounded-full bg-orange-500/90 p-3 text-white shadow-md hover:bg-orange-500"
+          className="flex items-center gap-2 rounded-full bg-orange-500/90 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-orange-500"
         >
-          <FileDownIcon className="h-6 w-6" />
+          <FileDownIcon className="h-4 w-4" />
+          Baixar PDF
         </button>
+      </div>
+
+      <div ref={receiptRef}>
+        <ThermalReceipt
+          customer={{
+            Codigo: selectedOrder.items[0]?.codcliente,
+            name: selectedOrder.nomecliente,
+          }}
+          items={selectedOrder.items.map((item: any) => ({
+            quantity: item.qtde,
+            price: String(item.valor_un),
+            reposto: item.reposto,
+            product: {
+              CodProduto: item.codproduto,
+              Codigo: item.codproduto,
+              Descricao: item.descricao,
+            },
+          }))}
+          payment={selectedOrder.pagamento}
+          obs={selectedOrder.items[0]?.obs || ""}
+          responsavel={selectedOrder.items[0]?.responsavel || ""}
+          pedido={selectedOrder.pedido}
+          data={selectedOrder.data}
+          assinatura={selectedOrder.items[0]?.assinatura}
+        />
       </div>
 
       <div className="mt-4 flex gap-3">
