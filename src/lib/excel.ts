@@ -13,8 +13,8 @@ export function exportOrderXLS(order: Order) {
       Observação: i.note ?? "",
     }));
   const header = [
-    [`3A Automotive — Pedido #${order.number}`],
-    [`Cliente: ${order.customerName}`],
+    [`3A Automotive — Pedido #${order.Pedido}`],
+    [`Cliente: ${order.Cliente}`],
     [`Data: ${new Date(order.createdAt).toLocaleString("pt-BR")}`],
     [`Responsável: ${order.responsible}`],
     [`Pagamento: ${order.payment || "-"}`],
