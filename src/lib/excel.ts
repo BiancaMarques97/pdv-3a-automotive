@@ -13,8 +13,8 @@ export function exportOrderXLS(order: Order) {
       Observação: i.note ?? "",
     }));
   const header = [
-    [`3A Automotive — Pedido #${order.number}`],
-    [`Cliente: ${order.customerName}`],
+    [`3A Automotive — Pedido #${order.Pedido}`],
+    [`Cliente: ${order.Cliente}`],
     [`Data: ${new Date(order.createdAt).toLocaleString("pt-BR")}`],
     [`Responsável: ${order.responsible}`],
     [`Pagamento: ${order.payment || "-"}`],
@@ -26,5 +26,5 @@ export function exportOrderXLS(order: Order) {
   ws["!cols"] = [{ wch: 16 }, { wch: 42 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 24 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Pedido");
-  XLSX.writeFile(wb, `pedido-${order.number}-${order.customerName.replace(/\s+/g, "_")}.xls`, { bookType: "xls" });
+  XLSX.writeFile(wb, `pedido-${order.Pedido}-${order.Cliente.replace(/\s+/g, "_")}.xls`, { bookType: "xls" });
 }
