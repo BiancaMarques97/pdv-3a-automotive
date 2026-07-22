@@ -7,6 +7,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useOrderStore } from "@/services/order-store";
 import { pedidoAPI } from "@/services/pedido-api";
 import { SignaturePad } from "@/components/SignaturePad";
+import { useState } from "react";
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
@@ -39,16 +40,18 @@ function CheckoutPage() {
 
   const setAssinatura = useOrderStore((state) => state.setAssinatura);
 
+  const [finalizing, setFinalizing] = useState(false);
+
   // "A Receber" exige assinatura do cliente confirmando o recebimento
   // das peças, já que o pagamento fica pendente.
   const requiresSignature = payment === "A Receber" || payment === "Consignado";
+
 
   // Botão só fica desabilitado quando a forma de pagamento exige
   // assinatura E ainda não tem uma capturada. Trocando pra qualquer
   // outra forma de pagamento, isso deixa de valer automaticamente
   // (já que requiresSignature vira false).
-  const canFinalize = !requiresSignature || !!assinatura;
-
+  const canFinalize = payment !== "" && (!requiresSignature || !!assinatura);
   // TOTAL
 
   const total = items.reduce(
@@ -58,73 +61,51 @@ function CheckoutPage() {
 
   // FINALIZAR
 
-  async function finalizeOrder() {
-    console.log(items);
-    if (!customer) return;
-    if (!canFinalize) return;
+async function finalizeOrder() {
+  if (finalizing) return;
 
+  if (!customer) return;
+  if (!canFinalize) return;
+
+  setFinalizing(true);
+
+  try {
     const pedido = await pedidoAPI.gerarNumeroPedido();
     const dataFinalizacao = new Date().toISOString();
 
     const rows = items.map((item) => ({
       pedido: pedido,
-
       codcliente: customer.Codigo,
-
       nomecliente: customer.name,
-
       codproduto: item.product.CodProduto,
-
       descricao: item.product.Descricao,
-
       qtde: item.quantity,
-
       qtde_entregue: item.quantity,
-
       qtde_pendente: 0,
-
       valor_un: Number(item.price.replace(",", ".")),
-
       valor_total: item.quantity * Number(item.price.replace(",", ".")),
-
       desc_comissao: 0,
-
       data: dataFinalizacao,
-
       data_entrega: dataFinalizacao,
-
       responsavel: responsavel,
-
       reposto: item.reposto,
-
       pagamento: payment,
-
       obs: obs,
-
-      // Só grava a assinatura de verdade quando o pagamento é "A
-      // Receber" (nos outros casos fica null, já que não foi exigida).
       assinatura: requiresSignature ? assinatura : null,
     }));
 
-    try {
-      console.log("ROWS", rows);
+    await pedidoAPI.createMany(rows);
 
-      await pedidoAPI.createMany(rows);
+    setPedido(pedido, dataFinalizacao);
 
-      console.log("SALVOU NO SUPABASE");
-
-      // Guarda o número oficial (ex: "PDV-0004") e a data de finalização
-      // no store, pra tela de pedido-finalizado usar exatamente o mesmo
-      // valor no cupom (ZPL) e no XLS, em vez de gerar um número novo.
-      setPedido(pedido, dataFinalizacao);
-
-      navigate({
-        to: "/pedido-finalizado",
-      });
-    } catch (error) {
-      console.error("ERRO SUPABASE", error);
-    }
+    navigate({
+      to: "/pedido-finalizado",
+    });
+  } catch (error) {
+    console.error("ERRO SUPABASE", error);
+    setFinalizing(false); // só reseta em caso de erro, pra poder tentar de novo
   }
+}
 
   return (
     <div className="min-h-screen bg-muted/30 p-4">
@@ -163,45 +144,32 @@ function CheckoutPage() {
 
               <div>
                 <label className="mb-2 block text-sm font-medium">Forma de pagamento</label>
+<select
+  value={payment}
+  onChange={(e) => setPayment(e.target.value)}
+  className="h-14 w-full rounded-2xl border px-4"
+>
+  <option value="" disabled>
+    Selecione uma forma de pagamento
+  </option>
 
-                <select
-                  value={payment}
-                  onChange={(e) => setPayment(e.target.value)}
-                  className="h-14 w-full rounded-2xl border px-4"
-                >
-                  <option value="A Receber">A Receber</option>
-
-                  <option value="Dinheiro">Dinheiro</option>
-
-                  <option value="Deposito Bancario">Deposito Bancário</option>
-
-                  <option value="Boleto">Boleto</option>
-
-                  <option value="Cheque">Cheque</option>
-
-                  <option value="Consignado">Consignado</option>
-
-                  <option value="PagSeguroF">PagSeguroF</option>
-
-                  <option value="PagSeguroL">PagSeguroL</option>
-
-                  <option value="PagSeguro3A">PagSeguro3A</option>
-
-                  <option value="Infinit Pay">Infinit Pay</option>
-
-                  <option value="PIX 3A">PIX 3A</option>
-
-                  <option value="Cartao Debito">Cartao Debito</option>
-
-                  <option value="Cartao Credito">Cartao Credito</option>
-
-                  <option value="PIX L">PIX L</option>
-
-                  <option value="PIX F">PIX F</option>
-                </select>
+  <option value="A Receber">A Receber</option>
+  <option value="Dinheiro">Dinheiro</option>
+  <option value="Deposito Bancario">Deposito Bancário</option>
+  <option value="Boleto">Boleto</option>
+  <option value="Cheque">Cheque</option>
+  <option value="Consignado">Consignado</option>
+  <option value="PagSeguroF">PagSeguroF</option>
+  <option value="PagSeguroL">PagSeguroL</option>
+  <option value="PagSeguro3A">PagSeguro3A</option>
+  <option value="Infinit Pay">Infinit Pay</option>
+  <option value="PIX 3A">PIX 3A</option>
+  <option value="Cartao Debito">Cartao Debito</option>
+  <option value="Cartao Credito">Cartao Credito</option>
+  <option value="PIX L">PIX L</option>
+  <option value="PIX F">PIX F</option>
+</select>
               </div>
-
-              {/* ASSINATURA (só aparece quando "A Receber" está selecionado) */}
 
               {requiresSignature && (
                 <div className="min-w-0">
@@ -276,13 +244,13 @@ function CheckoutPage() {
               </div>
             </div>
           </div>
-          <button
-            onClick={finalizeOrder}
-            disabled={!canFinalize}
-            className="mt-6 h-14 w-full rounded-2xl bg-orange-500/80 text-lg font-semibold text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Finalizar Pedido
-          </button>
+     <button
+  onClick={finalizeOrder}
+  disabled={!canFinalize || finalizing}
+  className="mt-6 h-14 w-full rounded-2xl bg-orange-500/80 text-lg font-semibold text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-40"
+>
+  {finalizing ? "Finalizando..." : "Finalizar Pedido"}
+</button>
         </div>
       </div>
     </div>

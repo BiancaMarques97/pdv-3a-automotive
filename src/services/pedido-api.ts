@@ -36,4 +36,15 @@ export const pedidoAPI = {
       throw error;
     }
   },
+
+  markEmailSent: async (pedido: string) => {
+    const { error } = await supabase
+      .from("pedido_vendatemp")
+      .update({ email_enviado: true })
+      .eq("pedido", pedido);
+
+    if (error) {
+      throw error;
+    }
+  },
 };

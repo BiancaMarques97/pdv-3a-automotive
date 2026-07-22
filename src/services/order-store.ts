@@ -80,7 +80,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
   items: [],
 
-  payment: "PIX 3A",
+  payment: "",
 
   obs: "",
 
@@ -134,7 +134,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
       items: [],
 
-      payment: "PIX 3A",
+      payment: "",
 
       obs: "",
 

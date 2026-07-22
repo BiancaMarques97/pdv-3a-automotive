@@ -19,6 +19,7 @@ import { sendOrderEmail } from "@/services/send-order-email";
 
 import { ZebraBluetoothService } from "@/components/zebra-bluetooth";
 import { useRef, useState } from "react";
+import { pedidoAPI } from "@/services/pedido-api";
 
 export const Route = createFileRoute("/pedido-finalizado")({
   component: PedidoFinalizadoPage,
@@ -63,11 +64,16 @@ function PedidoFinalizadoPage() {
 
   const [sendingEmail, setSendingEmail] = useState(false);
 
+  const [emailSent, setEmailSent] = useState(false);
+
 const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // TOTAL
 
-  const total = items.reduce((acc, item) => acc + item.quantity * item.product.Valor_Un, 0);
+ const total = items.reduce(
+  (acc, item) => acc + item.quantity * Number(item.price.replace(",", ".")),
+  0,
+);
 
   // PRINT (Zebra ZQ521 via Browser Print / ZPL)
 
@@ -234,7 +240,11 @@ async function printReceipt() {
 
     XLSX.writeFile(workbook, fileName);
   }
-  async function handleSendEmail() {
+
+async function handleSendEmail() {
+  // Trava extra contra clique duplo/repetido, mesmo que o disabled falhe
+  if (emailSent || sendingEmail) return;
+
   if (!customer || items.length === 0) {
     alert("Pedido vazio");
     return;
@@ -276,6 +286,9 @@ async function printReceipt() {
       },
     });
 
+    await pedidoAPI.markEmailSent(pedidoLabel);
+
+    setEmailSent(true);
     setToast({ type: "success", message: "O pedido foi enviado por e-mail com sucesso." });
   } catch (err) {
     console.error(err);
@@ -338,13 +351,13 @@ async function printReceipt() {
 
   {/* XLS - ENVIAR POR EMAIL */}
   <button
-    onClick={handleSendEmail}
-    disabled={sendingEmail}
-    className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted disabled:opacity-50"
-  >
-    <Mail className="h-7 w-7" />
-    {sendingEmail ? "Enviando..." : "Enviar XLS por E-mail"}
-  </button>
+  onClick={handleSendEmail}
+  disabled={sendingEmail || emailSent}
+  className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted disabled:opacity-50 disabled:hover:scale-100"
+>
+  <Mail className="h-7 w-7" />
+  {sendingEmail ? "Enviando..." : emailSent ? "E-mail enviado ✓" : "Enviar XLS por E-mail"}
+</button>
 </div>
         </div>
       </div>

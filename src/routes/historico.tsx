@@ -188,6 +188,14 @@ async function handleSendEmail(order: any) {
       },
     });
 
+    await pedidoAPI.markEmailSent(order.pedido);
+
+    setOrders((prev) =>
+      prev.map((item: any) =>
+        item.pedido === order.pedido ? { ...item, email_enviado: true } : item
+      ),
+    );
+
     setToast({ type: "success", message: "O pedido foi enviado por e-mail com sucesso." });
   } catch (err) {
     console.error(err);
@@ -196,7 +204,7 @@ async function handleSendEmail(order: any) {
     setSendingId(null);
   }
 }
- const groupedOrders = useMemo(
+const groupedOrders = useMemo(
   () =>
     Object.values(
       orders.reduce((acc: any, item: any) => {
@@ -208,6 +216,7 @@ async function handleSendEmail(order: any) {
             data: item.data,
             total: 0,
             items: [],
+            emailEnviado: item.email_enviado ?? false,
           };
         }
 
@@ -348,7 +357,7 @@ async function handleSendEmail(order: any) {
     className="flex h-12 items-center justify-center gap-2 rounded-2xl border-[1.5px] bg-orange-500/80 px-5 text-sm font-semibold text-white shadow-sm hover:bg-orange-500"
   >
     <Calendar className="h-5 w-5" />
-    Baixar por Período
+    Baixar XLS por Período
   </button>
 </div>
 
@@ -377,11 +386,23 @@ async function handleSendEmail(order: any) {
   </button>
 </div>
 
-               <div className="mt-3">
-                <span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-semibold text-orange-700">
-                  {order.pedido}
-                </span>
-              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+  <span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-semibold text-orange-700">
+    {order.pedido}
+  </span>
+
+  {order.emailEnviado ? (
+    <span className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+      <span className="h-2 w-2 rounded-full bg-green-500" />
+      E-mail enviado
+    </span>
+  ) : (
+    <span className="flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+      <span className="h-2 w-2 rounded-full bg-red-500" />
+      Email não enviado
+    </span>
+  )}
+</div>
 
               <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
                 <CalendarDays className="h-4 w-4" />
@@ -552,7 +573,7 @@ async function handleSendEmail(order: any) {
     <div className="w-full max-w-sm rounded-3xl bg-white p-8 shadow-xl">
       <div className="flex flex-col items-center text-center">
         <Calendar className="h-16 w-16 text-orange-500" />
-        <div className="mt-5 text-2xl font-bold">Baixar por período</div>
+        <div className="mt-5 text-2xl font-bold">Baixar XLS por período</div>
         <div className="mt-2 text-md text-muted-foreground">
           Selecione o intervalo de datas dos pedidos
         </div>
