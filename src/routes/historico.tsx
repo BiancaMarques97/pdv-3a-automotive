@@ -119,6 +119,8 @@ async function downloadReceiptPDF() {
       scale: 2,
       backgroundColor: "#ffffff",
       useCORS: true,
+      width: receiptRef.current.scrollWidth,
+      windowWidth: receiptRef.current.scrollWidth,
     });
 
     const imgData = canvas.toDataURL("image/png");
@@ -434,7 +436,7 @@ async function handleSendEmail(order: any) {
       <div className="mb-3 flex justify-end">
         <button
           onClick={downloadReceiptPDF}
-          className="flex items-center gap-2 rounded-full bg-orange-500/90 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-orange-500"
+          className="flex items-center gap-2 rounded-full bg-orange-500/90 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-orange-500 cursor-pointer"
         >
           <FileDownIcon className="h-4 w-4" />
           Baixar PDF
