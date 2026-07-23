@@ -119,38 +119,34 @@ function PedidoPage() {
   );
 
   function addProduct(product: Product) {
-    const exists = items.find((i) => i.product.CodProduto === product.CodProduto);
+  const exists = items.find((i) => i.product.CodProduto === product.CodProduto);
 
-    if (exists) {
-      setItemsStore(
-        items.map((i) =>
-          i.product.CodProduto === product.CodProduto
-            ? {
-                ...i,
+  if (exists) {
+    setItemsStore(
+      items.map((i) =>
+        i.product.CodProduto === product.CodProduto
+          ? {
+              ...i,
+              quantity: i.quantity + 1,
+            }
+          : i,
+      ),
+    );
 
-                quantity: i.quantity + 1,
-              }
-            : i,
-        ),
-      );
-
-      return;
-    }
-
-    setItemsStore([
-      ...items,
-
-      {
-        product,
-
-        reposto: "CR",
-
-        quantity: 1,
-
-        price: product.Valor_Un.toString(),
-      },
-    ]);
+    return;
   }
+
+  // Novo item entra no INÍCIO da lista, não no final
+  setItemsStore([
+    {
+      product,
+      reposto: "CR",
+      quantity: 1,
+      price: product.Valor_Un.toString(),
+    },
+    ...items,
+  ]);
+}
 
   function changeQty(codProduto: string, amount: number) {
     setItemsStore(

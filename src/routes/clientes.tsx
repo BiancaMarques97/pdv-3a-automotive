@@ -149,9 +149,11 @@ async function confirmImport() {
     setCustomers(data);
   }
 
-  const filtered = customers.filter((c) =>
+const filtered = customers
+  .filter((c) =>
     [c.name, c.Codigo, c.phone, c.city].join(" ").toLowerCase().includes(query.toLowerCase()),
-  );
+  )
+  .sort((a, b) => a.Codigo.localeCompare(b.Codigo, undefined, { numeric: true }));
 
   return (
     <AuthGuard>

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { useNavigate } from "@tanstack/react-router";
 
-import { CheckCircle2, FileSpreadsheet, Home, Mail, Printer, XCircle } from "lucide-react";
+import { CheckCircle2, FileSpreadsheet, FileText, Home, Mail, Printer, XCircle } from "lucide-react";
 
 import html2canvas from "html2canvas-pro";
 
@@ -324,16 +324,18 @@ async function handleSendEmail() {
 
        <div className="mt-10 grid grid-cols-2 gap-5">
   {/* CLIENTES */}
-  <button
-    onClick={() => {
-      clear();
-      navigate({ to: "/clientes" });
-    }}
-    className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted"
-  >
-    <Home className="h-7 w-7" />
-    Clientes
-  </button>
+
+
+
+    <button
+  onClick={handleSendEmail}
+  disabled={sendingEmail || emailSent}
+  className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted disabled:opacity-50 disabled:hover:scale-100"
+>
+  <Mail className="h-7 w-7" />
+  {sendingEmail ? "Enviando..." : emailSent ? "E-mail enviado ✓" : "Enviar XLS por E-mail"}
+</button>
+
 
   {/* IMPRIMIR */}
   <button
@@ -346,22 +348,27 @@ async function handleSendEmail() {
 
   {/* XLS - BAIXAR */}
   <button
-    onClick={exportXLS}
+    onClick={() => {
+      clear();
+      navigate({ to: "/clientes" });
+    }}
     className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted"
   >
-    <FileSpreadsheet className="h-7 w-7" />
-    Baixar XLS
+    <Home className="h-7 w-7" />
+    Voltar ao Início
   </button>
 
-  {/* XLS - ENVIAR POR EMAIL */}
   <button
-  onClick={handleSendEmail}
-  disabled={sendingEmail || emailSent}
-  className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted disabled:opacity-50 disabled:hover:scale-100"
->
-  <Mail className="h-7 w-7" />
-  {sendingEmail ? "Enviando..." : emailSent ? "E-mail enviado ✓" : "Enviar XLS por E-mail"}
-</button>
+    onClick={() => {
+      clear();
+      navigate({ to: "/historico" });
+    }}
+    className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted"
+  >
+    <FileText className="h-7 w-7" />
+    Histórico de Pedidos
+  </button>
+
 </div>
         </div>
       </div>
