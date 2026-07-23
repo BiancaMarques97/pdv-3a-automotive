@@ -20,8 +20,11 @@ import { sendOrderEmail } from "@/services/send-order-email";
 import { ZebraBluetoothService } from "@/components/zebra-bluetooth";
 import { useRef, useState } from "react";
 import { pedidoAPI } from "@/services/pedido-api";
+import { requireAuth } from "@/lib/auth";
+import { AuthGuard } from "@/components/AuthGuard";
 
 export const Route = createFileRoute("/pedido-finalizado")({
+  beforeLoad: requireAuth,
   component: PedidoFinalizadoPage,
 });
 
@@ -299,6 +302,7 @@ async function handleSendEmail() {
 }
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-muted/30 p-4 flex items-start md:items-center justify-center">
       <div className="mx-auto max-w-2xl w-full">
         <div className="rounded-3xl border bg-background p-8 shadow-sm">
@@ -439,5 +443,6 @@ async function handleSendEmail() {
 )}
 
     </div>
+    </AuthGuard>
   );
 }

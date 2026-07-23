@@ -8,8 +8,11 @@ import { useOrderStore } from "@/services/order-store";
 import { pedidoAPI } from "@/services/pedido-api";
 import { SignaturePad } from "@/components/SignaturePad";
 import { useState } from "react";
+import { requireAuth } from "@/lib/auth";
+import { AuthGuard } from "@/components/AuthGuard";
 
 export const Route = createFileRoute("/checkout")({
+  beforeLoad: requireAuth,
   component: CheckoutPage,
 });
 
@@ -108,6 +111,7 @@ async function finalizeOrder() {
 }
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-muted/30 p-4">
       <div className="mx-auto max-w-3xl">
         <div className="rounded-3xl border bg-background p-6">
@@ -254,5 +258,6 @@ async function finalizeOrder() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }

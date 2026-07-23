@@ -7,8 +7,11 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/layout/button";
 
 import { customersAPI } from "@/services/customers";
+import { requireAuth } from "@/lib/auth";
+import { AuthGuard } from "@/components/AuthGuard";
 
 export const Route = createFileRoute("/cliente/$id")({
+  beforeLoad: requireAuth,
   component: ClientePage,
 });
 
@@ -76,6 +79,7 @@ function ClientePage() {
   }
 
   return (
+        <AuthGuard>
     <div className="min-h-screen bg-muted/30">
       {/* HEADER */}
 
@@ -217,5 +221,6 @@ function ClientePage() {
         </div> */}
       </div>
     </div>
+    </AuthGuard>
   );
 }

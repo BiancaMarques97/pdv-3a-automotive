@@ -12,8 +12,11 @@ import { customersAPI } from "@/services/customers";
 
 import { useOrderStore } from "@/services/order-store";
 import { supabase } from "@/services/supabase";
+import { requireAuth } from "@/lib/auth";
+import { AuthGuard } from "@/components/AuthGuard";
 
 export const Route = createFileRoute("/novo-pedido/$id")({
+  beforeLoad: requireAuth,
   component: PedidoPage,
 });
 
@@ -180,6 +183,7 @@ function PedidoPage() {
   }
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-muted/30 pb-32">
       {/* HEADER */}
 
@@ -425,5 +429,6 @@ function PedidoPage() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }

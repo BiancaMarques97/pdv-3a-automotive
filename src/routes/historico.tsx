@@ -18,7 +18,8 @@ import {
   Users,
   X,
   XCircle,
-  Trash2
+  Trash2,
+  LogOut
 } from "lucide-react";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -28,13 +29,25 @@ import { pedidoAPI } from "@/services/pedido-api";
 import { ThermalReceipt } from "@/components/ThermalReceipt";
 
 import { exportOrderXLS, exportOrdersByPeriodXLS } from "@/lib/export-order-xls";
+import { requireAuth } from "@/lib/auth";
+import { AuthGuard } from "@/components/AuthGuard";
+import { supabase } from "@/services/supabase";
 
 export const Route = createFileRoute("/historico")({
+   beforeLoad: requireAuth,
   component: HistoricoPage,
 });
 
 function HistoricoPage() {
   const navigate = useNavigate();
+
+    async function handleLogout() {
+    await supabase.auth.signOut();
+  
+    navigate({
+      to: "/login",
+    });
+  }
 
   const zebraRef = useRef<ZebraBluetoothService | null>(null);
   if (!zebraRef.current) {
@@ -266,8 +279,8 @@ const groupedOrders = useMemo(
     setOrderToDelete(null);
   }
 }
-
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-muted/30">
       <div className="sticky top-0 z-20 border-b bg-background">
         <div className="flex items-center gap-3 p-4">
@@ -314,13 +327,13 @@ const groupedOrders = useMemo(
                 </button>
               </div>
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-1 flex-col gap-3">
                 <button
                   onClick={() => {
                     navigate({ to: "/clientes" });
                     setMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100"
+                  className="flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100 cursor-pointer"
                 >
                   <Users size={20} />
                   Clientes
@@ -331,11 +344,19 @@ const groupedOrders = useMemo(
                     navigate({ to: "/historico" });
                     setMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 rounded-xl bg-[#F28C38] px-5 py-4 text-left font-medium text-white shadow-sm transition"
+                  className="flex items-center gap-3 rounded-xl bg-[#F28C38] px-5 py-4 text-left font-medium text-white shadow-sm transition cursor-pointer"
                 >
                   <FileText size={20} />
                   Histórico
                 </button>
+
+                  <button
+  onClick={handleLogout}
+  className="mt-auto flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-red-600 transition hover:bg-red-50 cursor-pointer"
+>
+  <LogOut size={20} />
+  Sair
+</button>
               </div>
             </div>
           </>
@@ -624,5 +645,6 @@ const groupedOrders = useMemo(
   </div>
 )}
     </div>
+  </AuthGuard>
   );
 }

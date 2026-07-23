@@ -6,22 +6,16 @@ import { CheckCircle2, ChevronRight, FileText, LogOut, MapPin, Phone, Search, Up
 import { useEffect, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { customersAPI } from "@/services/customers";
-// import { isAuthenticated } from "@/lib/auth";
 import { supabase } from "@/services/supabase";
 
+import { requireAuth } from "@/lib/auth";
+import { AuthGuard } from "@/components/AuthGuard";
+
 export const Route = createFileRoute("/clientes")({
-  // beforeLoad: async () => {
-  //   const logged = await isAuthenticated();
-
-  //   if (!logged) {
-  //     throw redirect({
-  //       to: "/login",
-  //     });
-  //   }
-  // },
-
+  beforeLoad: requireAuth,
   component: ClientesPage,
 });
+
 type Customer = {
   CodCliente: string;
   Codigo: string;
@@ -35,13 +29,13 @@ type Customer = {
  function ClientesPage() {
   const navigate = useNavigate();
 
-//   async function handleLogout() {
-//   await supabase.auth.signOut();
+  async function handleLogout() {
+  await supabase.auth.signOut();
 
-//   navigate({
-//     to: "/login",
-//   });
-// }
+  navigate({
+    to: "/login",
+  });
+}
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -160,6 +154,7 @@ async function confirmImport() {
   );
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-muted/30">
       {/* HEADER */}
 
@@ -206,14 +201,14 @@ async function confirmImport() {
                 <X size={18} />
               </button>
             </div>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-1 flex-col gap-3">
 
               <button
                 onClick={() => {
                   navigate({ to: "/clientes" });
                   setMenuOpen(false);
                 }}
-                className="flex items-center gap-3 rounded-xl bg-[#F28C38] px-5 py-4 text-left font-medium text-white shadow-sm transition"
+                className="flex items-center gap-3 rounded-xl bg-[#F28C38] px-5 py-4 text-left font-medium text-white shadow-sm transition cursor-pointer"
               >
   
                 <Users size={20} /> Clientes
@@ -223,19 +218,19 @@ async function confirmImport() {
                   navigate({ to: "/historico" });
                   setMenuOpen(false);
                 }}
-                className="flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100"
+                className="flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100 cursor-pointer"
               >
   
                 <FileText size={20} /> Histórico
               </button>
-{/* 
+
               <button
   onClick={handleLogout}
-  className="mt-auto flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-red-600 transition hover:bg-red-50"
+  className="mt-auto flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-red-600 transition hover:bg-red-50 cursor-pointer"
 >
   <LogOut size={20} />
   Sair
-</button> */}
+</button>
             </div>
           </div>
         </>
@@ -380,6 +375,7 @@ async function confirmImport() {
   </div>
 )}
     </div>
+    </AuthGuard>
   );
 }
     
