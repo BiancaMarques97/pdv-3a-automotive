@@ -1,10 +1,12 @@
 import logo from "@/assets/logo-3a.png";
 import { Button } from "@/components/layout/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, XCircle } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/services/supabase";
 import { users } from "@/lib/users";
+
+
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -19,41 +21,57 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
 
-  
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+const navigate = useNavigate();
+const [toast, setToast] = useState<string | null>(null);
+const [loading, setLoading] = useState(false);
 const [username, setUsername] = useState("");
 const [password, setPassword] = useState("");
-const [error, setError] = useState("");
+const [showPassword, setShowPassword] = useState(false);
 
 async function onSubmit(e: React.FormEvent) {
   e.preventDefault();
 
   setLoading(true);
-  setError("");
 
-  const email = users[username.toLowerCase()];
+  try {
+    // Validação dos campos
+    if (!username.trim() || !password.trim()) {
+      setToast("Informe o usuário e a senha.");
+      return;
+    }
 
-  if (!email) {
-    setError("Usuário ou senha inválidos.");
+    // Busca o e-mail correspondente ao usuário
+    const email = users[username.trim().toLowerCase()];
+
+    if (!email) {
+      setToast("Usuário ou senha inválidos.");
+      return;
+    }
+
+    // Tenta autenticar no Supabase
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.error(error);
+
+      setToast("Usuário ou senha inválidos.");
+      return;
+    }
+
+    // Login realizado com sucesso
+    navigate({
+      to: "/clientes",
+    });
+  } catch (err) {
+    console.error(err);
+
+    setToast("Erro ao conectar ao servidor. Tente novamente.");
+  } finally {
     setLoading(false);
-    return;
   }
-
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    setError("Usuário ou senha inválidos.");
-    setLoading(false);
-    return;
-  }
-
-  navigate({
-    to: "/clientes",
-  });
 }
   
 
@@ -111,28 +129,74 @@ async function onSubmit(e: React.FormEvent) {
               />
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="ml-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Senha
-                </label>
-                
-              </div>
-              <input
-                type="password"
-  value={password}
-  onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                placeholder="••••••••"
-                className="h-14 w-full rounded-2xl border-2 border-border bg-muted px-5 text-base font-semibold text-foreground outline-none transition-all placeholder:text-muted-foreground/60 focus:border-primary focus:bg-card focus:ring-4 focus:ring-primary/15"
-              />
-            </div>
+          <div className="space-y-2">
+  <label className="ml-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+    Senha
+  </label>
+
+  <div className="relative">
+    <input
+      type={showPassword ? "text" : "password"}
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      autoComplete="current-password"
+      placeholder="••••••••"
+      className="h-14 w-full rounded-2xl border-2 border-border bg-muted px-5 pr-14 text-base font-semibold text-foreground outline-none transition-all placeholder:text-muted-foreground/60 focus:border-primary focus:bg-card focus:ring-4 focus:ring-primary/15"
+    />
+
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute inset-y-0 right-3 flex items-center justify-center rounded-full p-2 text-muted-foreground transition-all  hover:text-primary cursor-pointer"
+    >
+      {showPassword ? (
+        <EyeOff className="h-5 w-5" />
+      ) : (
+        <Eye className="h-5 w-5" />
+      )}
+    </button>
+  </div>
+</div>
+
+            <Button
+  type="submit"
+  disabled={loading}
+  className="h-14 w-full rounded-2xl text-medium font-semibold uppercase tracking-wide text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 active:scale-[0.99] disabled:opacity-70 cursor-pointer"
+>
+  {loading ? (
+    "Entrando..."
+  ) : (
+    <>
+      Entrar
+      
+    </>
+  )}
+</Button>
           
-          <Button
-            className="mt-6 h-14 w-full rounded-2xl text-medium font-semibold uppercase tracking-wide text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 active:scale-[0.99] disabled:opacity-70"
-          >
-            {loading ? "Entrando..." : "Entrar"}
-          </Button>
+{toast && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
+
+      <XCircle className="mx-auto h-20 w-20 text-red-500" />
+
+      <h2 className="mt-5 text-2xl font-bold">
+        Erro
+      </h2>
+
+      <p className="mt-3 text-muted-foreground">
+        {toast}
+      </p>
+
+      <Button
+        type="button"
+        onClick={() => setToast(null)}
+        className="mt-6 w-full rounded-2xl"
+      >
+        OK
+      </Button>
+    </div>
+  </div>
+)}
           </form>
         </div>
       </div>
