@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 type Product = {
   CodProduto: string;
@@ -75,75 +76,40 @@ export type OrderStore = {
   clear: () => void;
 };
 
-export const useOrderStore = create<OrderStore>((set) => ({
-  customer: null,
-
-  items: [],
-
-  payment: "",
-
-  obs: "",
-
-  responsavel: "LUIZ FARIA",
-
-  pedido: null,
-
-  dataFinalizacao: null,
-
-  assinatura: null,
-
-  setCustomer: (customer) =>
-    set({
-      customer,
-    }),
-
-  setItems: (items) =>
-    set({
-      items,
-    }),
-
-  setPayment: (payment) =>
-    set({
-      payment,
-    }),
-
-  setObs: (obs) =>
-    set({
-      obs,
-    }),
-
-  setResponsavel: (responsavel) =>
-    set({
-      responsavel,
-    }),
-
-  setPedido: (pedido, dataFinalizacao) =>
-    set({
-      pedido,
-      dataFinalizacao,
-    }),
-
-  setAssinatura: (assinatura) =>
-    set({
-      assinatura,
-    }),
-
-  clear: () =>
-    set({
+export const useOrderStore = create<OrderStore>()(
+  persist(
+    (set) => ({
       customer: null,
-
       items: [],
-
       payment: "",
-
       obs: "",
-
       responsavel: "LUIZ FARIA",
-
       pedido: null,
-
       dataFinalizacao: null,
-
       assinatura: null,
+
+      setCustomer: (customer) => set({ customer }),
+      setItems: (items) => set({ items }),
+      setPayment: (payment) => set({ payment }),
+      setObs: (obs) => set({ obs }),
+      setResponsavel: (responsavel) => set({ responsavel }),
+      setPedido: (pedido, dataFinalizacao) => set({ pedido, dataFinalizacao }),
+      setAssinatura: (assinatura) => set({ assinatura }),
+
+      clear: () =>
+        set({
+          customer: null,
+          items: [],
+          payment: "",
+          obs: "",
+          responsavel: "LUIZ FARIA",
+          pedido: null,
+          dataFinalizacao: null,
+          assinatura: null,
+        }),
     }),
-}));
+    {
+      name: "pdv-order-store", // chave usada no localStorage
+    },
+  ),
+);

@@ -9,6 +9,7 @@ import { Button } from "@/components/layout/button";
 import { customersAPI } from "@/services/customers";
 import { requireAuth } from "@/lib/auth";
 import { AuthGuard } from "@/components/AuthGuard";
+import { useOrderStore } from "@/services/order-store";
 
 export const Route = createFileRoute("/cliente/$id")({
   beforeLoad: requireAuth,
@@ -59,6 +60,8 @@ function ClientePage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
 
   const [orders, setOrders] = useState<Order[]>([]);
+
+  const clear = useOrderStore((state) => state.clear);
 
   useEffect(() => {
     loadCustomer();
@@ -174,21 +177,22 @@ function ClientePage() {
               </div>
             </div>
           </div>
-          <Button
-            onClick={() =>
-              navigate({
-                to: "/novo-pedido/$id",
+       <Button
+  onClick={() => {
+    clear(); 
 
-                params: {
-                  id: String(customer.CodCliente),
-                },
-              })
-            }
-            className="mt-6 h-14 w-full rounded-2xl text-base"
-          >
-            <Plus className="mr-2 h-5 w-5" />
-            Novo Pedido
-          </Button>
+    navigate({
+      to: "/novo-pedido/$id",
+      params: {
+        id: String(customer.CodCliente),
+      },
+    });
+  }}
+  className="mt-6 h-14 w-full rounded-2xl text-base"
+>
+  <Plus className="mr-2 h-5 w-5" />
+  Novo Pedido
+</Button>
         </div>
 
         {/* HISTORY */}

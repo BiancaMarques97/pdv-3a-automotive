@@ -148,7 +148,7 @@ async function downloadReceiptPDF() {
     });
 
     pdf.addImage(imgData, "PNG", 0, 0, pdfWidthMm, pdfHeightMm);
-    pdf.save(`canhoto-${selectedOrder.pedido}.pdf`);
+   pdf.save(`${selectedOrder.pedido}-${selectedOrder.items[0]?.codcliente ?? ""}.pdf`);
   } catch (err) {
     console.error(err);
     setToast({ type: "error", message: "Não foi possível gerar o PDF. Tente novamente." });
