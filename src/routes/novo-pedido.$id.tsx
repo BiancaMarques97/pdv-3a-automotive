@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, Upload, CheckCircle2, XCircle  } from "lucide-react";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -14,6 +14,9 @@ import { useOrderStore } from "@/services/order-store";
 import { supabase } from "@/services/supabase";
 import { requireAuth } from "@/lib/auth";
 import { AuthGuard } from "@/components/AuthGuard";
+import { useRef } from "react";
+import { productsAPI } from "@/services/products";
+import * as XLSX from "xlsx";
 
 export const Route = createFileRoute("/novo-pedido/$id")({
   beforeLoad: requireAuth,
@@ -78,6 +81,11 @@ function PedidoPage() {
   const storeCustomer = useOrderStore((state) => state.customer);
 
   const clear = useOrderStore((state) => state.clear);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+const [pendingImport, setPendingImport] = useState<any[] | null>(null);
+const [importing, setImporting] = useState(false);
+const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   useEffect(() => {
     load();
@@ -166,6 +174,70 @@ function PedidoPage() {
     );
   }
 
+  async function handleImportProducts(event: React.ChangeEvent<HTMLInputElement>) {
+  const file = event.target.files?.[0];
+
+  if (!file) return;
+
+  const buffer = await file.arrayBuffer();
+
+  const workbook = XLSX.read(buffer);
+
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+  const rows = XLSX.utils.sheet_to_json(sheet);
+
+  const newProducts = rows.map((row: any) => ({
+    codproduto: row.codproduto,
+    similar_produto: row.similar_produto,
+    descricao: row.descricao,
+    valor: Number(row.valor),
+    qtde: row.qtde ? Number(row.qtde) : 0,
+  }));
+
+  setPendingImport(newProducts);
+
+  event.target.value = "";
+}
+
+async function confirmImportProducts() {
+  if (!pendingImport) return;
+
+  try {
+    setImporting(true);
+
+    await productsAPI.importProducts(pendingImport);
+
+    // Recarrega a lista de produtos pra já aparecer na busca
+    const { data, error } = await supabase.from("produtos").select("*");
+
+    if (!error && data) {
+      setProducts(
+        data.map((p) => ({
+          CodProduto: p.codproduto,
+          Codigo: p.codproduto,
+          Descricao: p.descricao,
+          Valor_Un: Number(p.valor),
+        })),
+      );
+    }
+
+    setToast({
+      type: "success",
+      message:
+        pendingImport.length === 1
+          ? "1 produto importado com sucesso."
+          : `${pendingImport.length} produtos importados com sucesso.`,
+    });
+  } catch (error) {
+    console.error(error);
+    setToast({ type: "error", message: "Não foi possível importar os produtos. Tente novamente." });
+  } finally {
+    setImporting(false);
+    setPendingImport(null);
+  }
+}
+
   const total = useMemo(() => {
     return items.reduce(
       (acc, item) => acc + item.quantity * Number(item.price.replace(",", ".")),
@@ -221,6 +293,21 @@ function PedidoPage() {
           placeholder="Buscar produto..."
           className="h-14 rounded-2xl"
         />
+
+        <input
+  ref={fileInputRef}
+  type="file"
+  accept=".xlsx,.xls,.csv"
+  className="hidden"
+  onChange={handleImportProducts}
+/>
+
+   <div className="flex justify-end">
+          <Button className="h-12 rounded-xl cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+            <Upload className="mr-2 h-4 w-4" />
+            Importar Produtos
+          </Button>
+        </div>
 
         {/* PRODUCTS */}
 
@@ -409,7 +496,7 @@ function PedidoPage() {
 
           <Button
             disabled={items.length === 0}
-            className="h-14 rounded-2xl px-8 text-base shadow-lg"
+            className="h-14 rounded-2xl px-8 text-base shadow-lg cursor-pointer"
             onClick={() => {
               setOrderCustomer(customer);
 
@@ -424,6 +511,65 @@ function PedidoPage() {
           </Button>
         </div>
       </div>
+
+      {pendingImport && (
+  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+    <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
+      <Upload className="mx-auto h-10 w-10 text-orange-500" />
+
+      <div className="mt-5 text-2xl font-bold">Confirmar importação</div>
+
+      <div className="mt-2 text-lg text-muted-foreground">
+        {pendingImport.length === 1
+          ? "Deseja importar 1 produto?"
+          : `Deseja importar ${pendingImport.length} produtos?`}
+      </div>
+
+      <div className="mt-6 flex gap-3">
+        <button
+          onClick={() => setPendingImport(null)}
+          disabled={importing}
+          className="flex-1 rounded-2xl border p-4 text-lg font-semibold text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={confirmImportProducts}
+          disabled={importing}
+          className="flex-1 rounded-2xl bg-orange-500/80 p-4 text-lg font-semibold text-white shadow-sm hover:bg-orange-500 disabled:opacity-50"
+        >
+          {importing ? "Importando..." : "Importar"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{toast && (
+  <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
+    <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
+      {toast.type === "success" ? (
+        <CheckCircle2 className="mx-auto h-20 w-20 text-green-500" />
+      ) : (
+        <XCircle className="mx-auto h-20 w-20 text-red-500" />
+      )}
+
+      <div className="mt-5 text-2xl font-bold">
+        {toast.type === "success" ? "Sucesso!" : "Erro"}
+      </div>
+
+      <div className="mt-2 text-base text-muted-foreground">{toast.message}</div>
+
+      <button
+        onClick={() => setToast(null)}
+        className="mt-6 w-full rounded-2xl p-4 text-lg font-semibold text-white shadow-sm bg-orange-500/80"
+      >
+        OK
+      </button>
+    </div>
+  </div>
+)}
     </div>
     </AuthGuard>
   );

@@ -375,7 +375,7 @@ const groupedOrders = useMemo(
 
   <button
     onClick={() => setPeriodModalOpen(true)}
-    className="flex h-12 items-center justify-center gap-2 rounded-2xl border-[1.5px] bg-orange-500/80 px-5 text-sm font-semibold text-white shadow-sm hover:bg-orange-500"
+    className="flex h-12 items-center justify-center gap-2 rounded-2xl border-[1.5px] bg-orange-500/80 px-5 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 cursor-pointer"
   >
     <Calendar className="h-5 w-5" />
     Baixar XLS por Período
@@ -415,7 +415,7 @@ const groupedOrders = useMemo(
   {order.emailEnviado ? (
     <span className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
       <span className="h-2 w-2 rounded-full bg-green-500" />
-      E-mail enviado
+      Email enviado
     </span>
   ) : (
     <span className="flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">

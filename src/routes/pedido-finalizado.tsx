@@ -333,7 +333,7 @@ async function handleSendEmail() {
   className="flex h-28 flex-col items-center justify-center gap-3 rounded-3xl border bg-background text-base font-medium shadow-sm transition-all hover:scale-[1.02] hover:bg-muted disabled:opacity-50 disabled:hover:scale-100"
 >
   <Mail className="h-7 w-7" />
-  {sendingEmail ? "Enviando..." : emailSent ? "E-mail enviado ✓" : "Enviar XLS por E-mail"}
+  {sendingEmail ? "Enviando..." : emailSent ? "Email enviado ✓" : "Enviar XLS por Email"}
 </button>
 
 

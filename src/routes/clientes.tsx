@@ -265,7 +265,7 @@ const filtered = customers
         />
 
         <div className="flex justify-end">
-          <Button className="h-12 rounded-xl" onClick={() => fileInputRef.current?.click()}>
+          <Button className="h-12 rounded-xl cursor-pointer" onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-2 h-4 w-4" />
             Importar Clientes
           </Button>
@@ -285,7 +285,7 @@ const filtered = customers
                   },
                 })
               }
-              className="flex w-full items-center justify-between rounded-2xl border bg-background p-4 text-left transition hover:bg-muted/50 shadow-sm"
+              className="flex w-full items-center justify-between rounded-2xl border bg-background p-4 text-left transition hover:bg-muted/50 shadow-sm cursor-pointer"
             >
               <div className="flex items-center gap-4">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-200 text-orange-500">

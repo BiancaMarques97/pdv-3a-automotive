@@ -151,7 +151,7 @@ async function finalizeOrder() {
 <select
   value={payment}
   onChange={(e) => setPayment(e.target.value)}
-  className="h-14 w-full rounded-2xl border px-4"
+  className="h-14 w-full rounded-2xl border px-4 cursor-pointer"
 >
   <option value="" disabled>
     Selecione uma forma de pagamento
@@ -199,7 +199,7 @@ async function finalizeOrder() {
                 <select
                   value={responsavel}
                   onChange={(e) => setResponsavel(e.target.value)}
-                  className="h-14 w-full rounded-2xl border px-4"
+                  className="h-14 w-full rounded-2xl border px-4 cursor-pointer"
                 >
                   <option value="LUIZ FARIA">LUIZ FARIA</option>
 
@@ -251,7 +251,7 @@ async function finalizeOrder() {
      <button
   onClick={finalizeOrder}
   disabled={!canFinalize || finalizing}
-  className="mt-6 h-14 w-full rounded-2xl bg-orange-500/80 text-lg font-semibold text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-40"
+  className="mt-6 h-14 w-full rounded-2xl bg-orange-500/80 text-lg font-semibold text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
 >
   {finalizing ? "Finalizando..." : "Finalizar Pedido"}
 </button>

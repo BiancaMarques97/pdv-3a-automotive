@@ -188,7 +188,7 @@ function ClientePage() {
       },
     });
   }}
-  className="mt-6 h-14 w-full rounded-2xl text-base"
+  className="mt-6 h-14 w-full rounded-2xl text-base cursor-pointer"
 >
   <Plus className="mr-2 h-5 w-5" />
   Novo Pedido

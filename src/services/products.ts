@@ -1,3 +1,5 @@
+import { supabase } from "./supabase";
+
 export const REPOSTO_OPTIONS = [
   {
     label: "CSG - CONSIGNADO",
@@ -58,3 +60,23 @@ export interface PedidoVenda {
   NF?: string;
   OBS?: string;
 }
+
+export const productsAPI = {
+  list: async () => {
+    const { data, error } = await supabase.from("produtos").select("*");
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  },
+
+  importProducts: async (products: any[]) => {
+    const { error } = await supabase.from("produtos").insert(products);
+
+    if (error) {
+      throw error;
+    }
+  },
+};
