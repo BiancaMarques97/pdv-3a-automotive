@@ -321,14 +321,19 @@ const filtered = customers
   className="hidden"
   onChange={handleImportProducts}
 />
+<div className="flex w-full flex-col gap-3 sm:flex-row">
+  <Button
+    className="h-12 w-full rounded-xl cursor-pointer"
+    onClick={() => productFileInputRef.current?.click()}
+  >
+    <Upload className="mr-2 h-4 w-4" />
+    Importar Produtos
+  </Button>
 
-<div className="flex justify-end gap-3">
- <Button className="h-12 rounded-xl cursor-pointer"     onClick={() => productFileInputRef.current?.click()}>
-            <Upload className="mr-2 h-4 w-4" />
-            Importar Produtos
-          </Button>
-
-  <Button className="h-12 rounded-xl cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+  <Button
+    className="h-12 w-full rounded-xl cursor-pointer"
+    onClick={() => fileInputRef.current?.click()}
+  >
     <Upload className="mr-2 h-4 w-4" />
     Importar Clientes
   </Button>
