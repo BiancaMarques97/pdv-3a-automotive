@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { customersAPI } from "@/services/customers";
 import { supabase } from "@/services/supabase";
-
+import { productsAPI } from "@/services/products";
 import { requireAuth } from "@/lib/auth";
 import { AuthGuard } from "@/components/AuthGuard";
 
@@ -50,9 +50,59 @@ type Customer = {
   const [pendingImport, setPendingImport] = useState<any[] | null>(null);
 
 const [importing, setImporting] = useState(false);
+const productFileInputRef = useRef<HTMLInputElement>(null);
+const [pendingImportProducts, setPendingImportProducts] = useState<any[] | null>(null);
+const [importingProducts, setImportingProducts] = useState(false);
 
+async function handleImportProducts(event: React.ChangeEvent<HTMLInputElement>) {
+  const file = event.target.files?.[0];
 
+  if (!file) return;
 
+  const buffer = await file.arrayBuffer();
+
+  const workbook = XLSX.read(buffer);
+
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+  const rows = XLSX.utils.sheet_to_json(sheet);
+
+  const newProducts = rows.map((row: any) => ({
+    codproduto: row.codproduto,
+    similar_produto: row.similar_produto,
+    descricao: row.descricao,
+    valor: Number(row.valor),
+    qtde: row.qtde ? Number(row.qtde) : 0,
+  }));
+
+  setPendingImportProducts(newProducts);
+
+  event.target.value = "";
+}
+
+async function confirmImportProducts() {
+  if (!pendingImportProducts) return;
+
+  try {
+    setImportingProducts(true);
+
+    await productsAPI.importProducts(pendingImportProducts);
+
+    setToast({
+      type: "success",
+      message:
+        pendingImportProducts.length === 1
+          ? "1 produto importado com sucesso."
+          : `${pendingImportProducts.length} produtos importados com sucesso.`,
+    });
+  } catch (error) {
+    console.error(error);
+    setToast({ type: "error", message: "Não foi possível importar os produtos. Tente novamente." });
+  } finally {
+    setImportingProducts(false);
+    setPendingImportProducts(null);
+  }
+}
   async function handleImport(event: React.ChangeEvent<HTMLInputElement>) {
   const file = event.target.files?.[0];
 
@@ -264,12 +314,25 @@ const filtered = customers
           onChange={handleImport}
         />
 
-        <div className="flex justify-end">
-          <Button className="h-12 rounded-xl cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+    <input
+  ref={productFileInputRef}
+  type="file"
+  accept=".xlsx,.xls,.csv"
+  className="hidden"
+  onChange={handleImportProducts}
+/>
+
+<div className="flex justify-end gap-3">
+ <Button className="h-12 rounded-xl cursor-pointer"     onClick={() => productFileInputRef.current?.click()}>
             <Upload className="mr-2 h-4 w-4" />
-            Importar Clientes
+            Importar Produtos
           </Button>
-        </div>
+
+  <Button className="h-12 rounded-xl cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+    <Upload className="mr-2 h-4 w-4" />
+    Importar Clientes
+  </Button>
+</div>
        
         {/* LIST */}
 
@@ -315,6 +378,40 @@ const filtered = customers
         </div>
 
         </div>
+
+        {pendingImportProducts && (
+  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+    <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
+      <Upload className="mx-auto h-10 w-10 text-orange-500" />
+
+      <div className="mt-5 text-2xl font-bold">Confirmar importação</div>
+
+      <div className="mt-2 text-lg text-muted-foreground">
+        {pendingImportProducts.length === 1
+          ? "Deseja importar 1 produto?"
+          : `Deseja importar ${pendingImportProducts.length} produtos?`}
+      </div>
+
+      <div className="mt-6 flex gap-3">
+        <button
+          onClick={() => setPendingImportProducts(null)}
+          disabled={importingProducts}
+          className="flex-1 rounded-2xl border p-4 text-lg font-semibold text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={confirmImportProducts}
+          disabled={importingProducts}
+          className="flex-1 rounded-2xl bg-orange-500/80 p-4 text-lg font-semibold text-white shadow-sm hover:bg-orange-500 disabled:opacity-50"
+        >
+          {importingProducts ? "Importando..." : "Importar"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {toast && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">

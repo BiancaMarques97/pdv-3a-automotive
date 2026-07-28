@@ -73,7 +73,9 @@ export const productsAPI = {
   },
 
   importProducts: async (products: any[]) => {
-    const { error } = await supabase.from("produtos").insert(products);
+    const { error } = await supabase
+      .from("produtos")
+      .upsert(products, { onConflict: "codproduto" });
 
     if (error) {
       throw error;
