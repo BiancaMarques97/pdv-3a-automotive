@@ -23,7 +23,7 @@ import {
   LogOut
 } from "lucide-react";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { pedidoAPI } from "@/services/pedido-api";
 
@@ -33,6 +33,7 @@ import { exportOrderXLS, exportOrdersByPeriodXLS } from "@/lib/export-order-xls"
 import { requireAuth } from "@/lib/auth";
 import { AuthGuard } from "@/components/AuthGuard";
 import { supabase } from "@/services/supabase";
+import { OrderCard } from "@/components/OrderCard";
 
 export const Route = createFileRoute("/historico")({
    beforeLoad: requireAuth,
@@ -230,7 +231,10 @@ function handleExportByPeriod() {
   });
 }
 
-async function handleSendEmail(order: any) {
+// useCallback: mantém a mesma referência de função entre renders, pra não
+// quebrar a memoização do OrderCard (sem isso, o React acha que a prop
+// "mudou" a cada render do HistoricoPage e o memo() do card não faz efeito)
+const handleSendEmail = useCallback(async (order: any) => {
   try {
     setSendingId(order.pedido);
 
@@ -260,7 +264,12 @@ async function handleSendEmail(order: any) {
   } finally {
     setSendingId(null);
   }
-}
+}, []);
+
+const handleView = useCallback((order: any) => setSelectedOrder(order), []);
+const handleDelete = useCallback((order: any) => setOrderToDelete(order), []);
+const handleExportXLS = useCallback((order: any) => exportOrderXLS(order), []);
+
 const groupedOrders = useMemo(
   () =>
     Object.values(
@@ -287,22 +296,24 @@ const groupedOrders = useMemo(
   [orders],
 );
 
-  const filteredOrders = groupedOrders.filter((order: any) => {
+  // useMemo: só recalcula o filtro quando "orders" ou "search" mudam de
+  // verdade — antes rodava em TODO re-render (abrir toast, modal, menu...)
+  const filteredOrders = useMemo(() => {
     const term = search.toLowerCase().trim();
 
-    if (!term) return true;
+    if (!term) return groupedOrders;
 
-    const codigoCliente = String(
-      order.items?.[0]?.codcliente || "",
-    ).toLowerCase();
+    return groupedOrders.filter((order: any) => {
+      const codigoCliente = String(order.items?.[0]?.codcliente || "").toLowerCase();
 
-    return (
-      String(order.pedido).toLowerCase().includes(term) ||
-      String(order.pagamento).toLowerCase().includes(term) ||
-      String(order.nomecliente).toLowerCase().includes(term) ||
-      codigoCliente.includes(term)
-    );
-  });
+      return (
+        String(order.pedido).toLowerCase().includes(term) ||
+        String(order.pagamento).toLowerCase().includes(term) ||
+        String(order.nomecliente).toLowerCase().includes(term) ||
+        codigoCliente.includes(term)
+      );
+    });
+  }, [groupedOrders, search]);
 
   async function confirmDelete() {
   if (!orderToDelete) return;
@@ -432,86 +443,17 @@ const groupedOrders = useMemo(
           </div>
         )}
 
-        <div className="m-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 ">
+        <div className="m-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredOrders.map((order: any) => (
-            <div
+            <OrderCard
               key={order.pedido}
-              className="rounded-3xl border bg-background p-5 shadow-md"
-            >
-             <div className="flex items-center justify-between gap-2">
-  <div className="text-lg font-bold">
-    {order.nomecliente} - {order.items?.[0]?.codcliente}
-  </div>
-
-  <button
-    onClick={() => setOrderToDelete(order)}
-    className="shrink-0 rounded-full p-2  bg-red-50 text-red-600 cursor-pointer"
-  >
-    <Trash2 className="h-5 w-5" />
-  </button>
-</div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-  <span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-semibold text-orange-700">
-    {order.pedido}
-  </span>
-
-  {order.emailEnviado ? (
-    <span className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-      <span className="h-2 w-2 rounded-full bg-green-500" />
-      Email enviado
-    </span>
-  ) : (
-    <span className="flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
-      <span className="h-2 w-2 rounded-full bg-red-500" />
-      Email não enviado
-    </span>
-  )}
-</div>
-
-              <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                <CalendarDays className="h-4 w-4" />
-                {new Date(order.data).toLocaleString("pt-BR")}
-              </div>
-
-              <div className="mt-5">
-                <div className="text-sm text-muted-foreground">
-                  Total
-                </div>
-
-                <div className="text-2xl font-bold">
-                  R$ {order.total.toFixed(2)}
-                </div>
-              </div>
-
-              <div className="mt-4 text-sm text-muted-foreground">
-                {order.pagamento}
-              </div>
-
-              <div className="mt-6 flex flex-col gap-3">
-                <button
-                  onClick={() => setSelectedOrder(order)}
-                  className="flex flex-1 items-center justify-center gap-2  border-[1.5px] rounded-2xl bg-orange-500/80 text-sm font-semibold text-white p-3 cursor-pointer hover:bg-orange-500 shadow-sm"
-                >
-                  <Eye className="h-5 w-5" />
-                  Visualizar
-                </button>
-
-                <button
-                  onClick={() => exportOrderXLS(order)}
-                  className="flex flex-1 items-center justify-center gap-2  border-[1.5px] rounded-2xl bg-orange-500/80 text-sm font-semibold text-white p-3 cursor-pointer hover:bg-orange-500 shadow-sm"
-                >
-                  <FileDownIcon className="h-5 w-5" /> Baixar XLS
-                </button>
-<button
-                    onClick={() => handleSendEmail(order)}
-  disabled={sendingId === order.pedido}
-                  className="flex flex-1 items-center justify-center gap-2  border-[1.5px] rounded-2xl bg-orange-500/80 text-sm font-semibold text-white p-3 cursor-pointer hover:bg-orange-500 shadow-sm"
-                >
-                  <Mail className="h-5 w-5" /> Enviar XLS por Email
-                </button>
-              </div>
-            </div>
+              order={order}
+              sendingEmail={sendingId === order.pedido}
+              onView={handleView}
+              onDelete={handleDelete}
+              onExportXLS={handleExportXLS}
+              onSendEmail={handleSendEmail}
+            />
           ))}
         </div>
       </div>
