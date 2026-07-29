@@ -19,6 +19,7 @@ import {
   X,
   XCircle,
   Trash2,
+  Pencil,
   LogOut
 } from "lucide-react";
 
@@ -65,6 +66,9 @@ const [deleting, setDeleting] = useState(false);
 const [periodModalOpen, setPeriodModalOpen] = useState(false);
 const [startDate, setStartDate] = useState("");
 const [endDate, setEndDate] = useState("");
+const [editingOrder, setEditingOrder] = useState<any>(null);
+const [editObs, setEditObs] = useState("");
+const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -81,6 +85,46 @@ const [endDate, setEndDate] = useState("");
   }, []);
 
 const [sendingId, setSendingId] = useState<string | null>(null);
+
+function openEditObs(order: any) {
+  setEditingOrder(order);
+  setEditObs(order.items?.[0]?.obs || "");
+}
+
+async function saveEditObs() {
+  if (!editingOrder) return;
+
+  try {
+    setSavingEdit(true);
+
+    await pedidoAPI.updateObs(editingOrder.pedido, editObs);
+
+    // Atualiza tanto a lista quanto o pedido aberto no modal de visualização,
+    // pra refletir na hora sem precisar fechar e abrir de novo
+    const updateItemsObs = (order: any) => ({
+      ...order,
+      items: order.items.map((item: any) => ({ ...item, obs: editObs })),
+    });
+
+    setOrders((prev) =>
+      prev.map((item: any) =>
+        item.pedido === editingOrder.pedido ? { ...item, obs: editObs } : item,
+      ),
+    );
+
+    setSelectedOrder((prev: any) =>
+      prev && prev.pedido === editingOrder.pedido ? updateItemsObs(prev) : prev,
+    );
+
+    setToast({ type: "success", message: "Observação atualizada com sucesso." });
+    setEditingOrder(null);
+  } catch (err) {
+    console.error(err);
+    setToast({ type: "error", message: "Não foi possível salvar a alteração. Tente novamente." });
+  } finally {
+    setSavingEdit(false);
+  }
+}
 
 async function reprintReceipt() {
   if (!selectedOrder) return;
@@ -475,16 +519,31 @@ const groupedOrders = useMemo(
   {selectedOrder && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
     <div className="max-h-[90vh] overflow-auto rounded-3xl bg-white p-4">
-      <div className="mb-3 flex justify-end">
-        <button
-          onClick={downloadReceiptPDF}
-          className="flex items-center gap-2 rounded-full bg-orange-500/90 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-orange-500 cursor-pointer"
-        >
-          <FileDownIcon className="h-4 w-4" />
-          Baixar PDF
-        </button>
-      </div>
 
+        <button
+        onClick={() => setSelectedOrder(null)}
+        className="sticky top-0 right-0 float-right z-10 -mr-1 -mt-1 mb-3 rounded-full bg-zinc-200/70 p-2 text-zinc-500 hover:bg-zinc-200 cursor-pointer"
+      >
+        <X className="h-5 w-5" />
+      </button>
+
+ <div className="mb-3 flex justify-end gap-2 clear-both">
+  <button
+    onClick={() => openEditObs(selectedOrder)}
+    className="flex items-center gap-2 rounded-full bg-orange-500/90 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-orange-500 cursor-pointer"
+  >
+    <Pencil className="h-4 w-4" />
+    Editar Obs.
+  </button>
+
+  <button
+    onClick={downloadReceiptPDF}
+    className="flex items-center gap-2 rounded-full bg-orange-500/90 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-orange-500 cursor-pointer"
+  >
+    <FileDownIcon className="h-4 w-4" />
+    Baixar PDF
+  </button>
+</div>
       <div ref={receiptRef}>
         <ThermalReceipt
           customer={{
@@ -523,6 +582,46 @@ const groupedOrders = useMemo(
           className="flex-1 rounded-2xl bg-orange-500/80 p-3 font-semibold text-white cursor-pointer hover:bg-orange-500 shadow-sm"
         >
           Imprimir
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{editingOrder && (
+  <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
+    <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
+      <div className="mb-1 text-xl font-bold">Editar Observações - {editingOrder.pedido}</div>
+      <div className="mb-6 text-sm text-muted-foreground">{editingOrder.nomecliente}-{editingOrder.items?.[0]?.codcliente}</div>
+
+      <div className="space-y-4">
+
+        <div>
+          <label className="mb-2 block text-md font-medium">Observações</label>
+          <textarea
+            value={editObs}
+            onChange={(e) => setEditObs(e.target.value)}
+            className="min-h-32 w-full rounded-2xl border p-4"
+            placeholder="Digite as observações do pedido aqui..."
+          />
+        </div>
+      </div>
+
+      <div className="mt-6 flex gap-3">
+        <button
+          onClick={() => setEditingOrder(null)}
+          disabled={savingEdit}
+          className="flex-1 rounded-2xl border p-4 font-semibold text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={saveEditObs}
+          disabled={savingEdit}
+          className="flex-1 rounded-2xl bg-orange-500/80 p-4 font-semibold text-white shadow-sm hover:bg-orange-500 disabled:opacity-50"
+        >
+          {savingEdit ? "Salvando..." : "Salvar"}
         </button>
       </div>
     </div>

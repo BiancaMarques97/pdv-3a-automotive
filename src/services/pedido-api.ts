@@ -47,4 +47,12 @@ export const pedidoAPI = {
       throw error;
     }
   },
+
+  updateObs: async (pedido: string, obs: string) => {
+    const { error } = await supabase.from("pedido_vendatemp").update({ obs }).eq("pedido", pedido);
+
+    if (error) {
+      throw error;
+    }
+  },
 };

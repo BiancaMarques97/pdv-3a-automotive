@@ -59,7 +59,7 @@ export const ThermalReceipt = forwardRef<HTMLDivElement, ThermalReceiptProps>(
 
           <div className="text-[11px]">CNPJ 17.242.529/0001-14</div>
 
-          <div className="text-[11px]">Tel: (35)99862-5845</div>
+          <div className="text-[11px]">Tel: (35)99862-5845/(35)98413-0344</div>
         </div>
 
         <div className="my-2 border-t border-dashed border-black" />
@@ -115,6 +115,7 @@ export const ThermalReceipt = forwardRef<HTMLDivElement, ThermalReceiptProps>(
             </div>
 
             <div className="italic">{item.reposto}</div>
+             <div className="my-2 border-t border-dashed border-black" />
           </div>
         ))}
 
