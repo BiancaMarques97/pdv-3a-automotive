@@ -147,7 +147,7 @@ export const ThermalReceipt = forwardRef<HTMLDivElement, ThermalReceiptProps>(
           <>
             <div className="my-2 border-t border-dashed border-black" />
 
-            <div className="text-[12px]">Obs: {obs}</div>
+            <div className="text-sm font-extrabold uppercase">Obs: {obs}</div>
           </>
         ) : null}
 

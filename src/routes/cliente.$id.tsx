@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/layout/button";
 
+import { Spinner } from "@/components/Spinner";
 import { customersAPI } from "@/services/customers";
 import { requireAuth } from "@/lib/auth";
 import { AuthGuard } from "@/components/AuthGuard";
@@ -77,9 +78,13 @@ function ClientePage() {
     setCustomer(found);
   }
 
-  if (!customer) {
-    return <div className="p-10">Carregando...</div>;
-  }
+if (!customer) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-muted/30">
+      <Spinner label="Carregando cliente..." />
+    </div>
+  );
+}
 
   return (
         <AuthGuard>

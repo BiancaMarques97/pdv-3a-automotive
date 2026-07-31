@@ -14,6 +14,7 @@ import { useOrderStore } from "@/services/order-store";
 import { supabase } from "@/services/supabase";
 import { requireAuth } from "@/lib/auth";
 import { AuthGuard } from "@/components/AuthGuard";
+import { Spinner } from "@/components/Spinner";
 
 export const Route = createFileRoute("/novo-pedido/$id")({
   beforeLoad: requireAuth,
@@ -175,8 +176,12 @@ function PedidoPage() {
   }, [items]);
 
   if (!customer) {
-    return <div className="p-10">Carregando...</div>;
-  }
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-muted/30">
+      <Spinner label="Carregando pedido..." />
+    </div>
+  );
+}
 
   return (
     <AuthGuard>

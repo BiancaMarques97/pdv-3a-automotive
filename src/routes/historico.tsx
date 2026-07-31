@@ -5,6 +5,7 @@ import { ZebraBluetoothService } from "@/components/zebra-bluetooth";
 import { buildReceiptZPL } from "@/components/Receipt zpl";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
+import { Spinner } from "@/components/Spinner";
 
 import {
   Calendar,
@@ -70,20 +71,23 @@ const [endDate, setEndDate] = useState("");
 const [editingOrder, setEditingOrder] = useState<any>(null);
 const [editObs, setEditObs] = useState("");
 const [savingEdit, setSavingEdit] = useState(false);
+const [loadingOrders, setLoadingOrders] = useState(true);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const data = await pedidoAPI.list();
+ useEffect(() => {
+  async function load() {
+    try {
+      const data = await pedidoAPI.list();
 
-        setOrders(data || []);
-      } catch (error) {
-        console.error(error);
-      }
+      setOrders(data || []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingOrders(false);
     }
+  }
 
-    load();
-  }, []);
+  load();
+}, []);
 
 const [sendingId, setSendingId] = useState<string | null>(null);
 
@@ -417,7 +421,7 @@ const groupedOrders = useMemo(
           </>
         )}
 
-     <div className="p-5 flex flex-col gap-3 md:flex-row">
+     <div className="p-5 flex flex-col-reverse gap-3 md:flex-row">
   <div className="relative flex-1">
     <input
       type="text"
@@ -437,11 +441,31 @@ const groupedOrders = useMemo(
   </button>
 </div>
 
-        {filteredOrders.length === 0 && (
-          <div className="m-10 mt-5 rounded-3xl border bg-background p-10 text-center text-muted-foreground shadow-md">
-            Nenhum pedido encontrado
-          </div>
-        )}
+       {loadingOrders ? (
+  <Spinner label="Carregando pedidos..." />
+) : (
+  <>
+    {filteredOrders.length === 0 && (
+      <div className="m-10 mt-5 rounded-3xl border bg-background p-10 text-center text-muted-foreground shadow-md">
+        Nenhum pedido encontrado
+      </div>
+    )}
+
+    <div className="m-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {filteredOrders.map((order: any) => (
+        <OrderCard
+          key={order.pedido}
+          order={order}
+          sendingEmail={sendingId === order.pedido}
+          onView={handleView}
+          onDelete={handleDelete}
+          onExportXLS={handleExportXLS}
+          onSendEmail={handleSendEmail}
+        />
+      ))}
+    </div>
+  </>
+)}
 
         <div className="m-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredOrders.map((order: any) => (
