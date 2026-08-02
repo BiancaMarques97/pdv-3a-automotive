@@ -72,6 +72,7 @@ const [editingOrder, setEditingOrder] = useState<any>(null);
 const [editObs, setEditObs] = useState("");
 const [savingEdit, setSavingEdit] = useState(false);
 const [loadingOrders, setLoadingOrders] = useState(true);
+const [editPagamento, setEditPagamento] = useState("");
 
  useEffect(() => {
   async function load() {
@@ -94,6 +95,7 @@ const [sendingId, setSendingId] = useState<string | null>(null);
 function openEditObs(order: any) {
   setEditingOrder(order);
   setEditObs(order.items?.[0]?.obs || "");
+  setEditPagamento(order.pagamento || "");
 }
 
 async function saveEditObs() {
@@ -102,35 +104,38 @@ async function saveEditObs() {
   try {
     setSavingEdit(true);
 
-    await pedidoAPI.updateObs(editingOrder.pedido, editObs);
+    await pedidoAPI.updateOrder(editingOrder.pedido, {
+      obs: editObs,
+      pagamento: editPagamento,
+    });
 
-    // Atualiza tanto a lista quanto o pedido aberto no modal de visualização,
-    // pra refletir na hora sem precisar fechar e abrir de novo
-    const updateItemsObs = (order: any) => ({
+    const updateOrderFields = (order: any) => ({
       ...order,
-      items: order.items.map((item: any) => ({ ...item, obs: editObs })),
+      pagamento: editPagamento,
+      items: order.items.map((item: any) => ({ ...item, obs: editObs, pagamento: editPagamento })),
     });
 
     setOrders((prev) =>
       prev.map((item: any) =>
-        item.pedido === editingOrder.pedido ? { ...item, obs: editObs } : item,
+        item.pedido === editingOrder.pedido
+          ? { ...item, obs: editObs, pagamento: editPagamento }
+          : item,
       ),
     );
 
     setSelectedOrder((prev: any) =>
-      prev && prev.pedido === editingOrder.pedido ? updateItemsObs(prev) : prev,
+      prev && prev.pedido === editingOrder.pedido ? updateOrderFields(prev) : prev,
     );
 
-    setToast({ type: "success", message: "Observação atualizada com sucesso." });
+    setToast({ type: "success", message: "Pedido atualizado com sucesso." });
     setEditingOrder(null);
   } catch (err) {
     console.error(err);
-    setToast({ type: "error", message: "Não foi possível salvar a alteração. Tente novamente." });
+    setToast({ type: "error", message: "Não foi possível salvar as alterações. Tente novamente." });
   } finally {
     setSavingEdit(false);
   }
 }
-
 async function reprintReceipt() {
   if (!selectedOrder) return;
 
@@ -499,7 +504,7 @@ const groupedOrders = useMemo(
     className="flex items-center gap-2 rounded-full bg-orange-500/90 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-orange-500 cursor-pointer"
   >
     <Pencil className="h-4 w-4" />
-    Editar Obs.
+    Editar
   </button>
 
   <button
@@ -557,10 +562,34 @@ const groupedOrders = useMemo(
 {editingOrder && (
   <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
     <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
-      <div className="mb-1 text-xl font-bold">Editar Observações - {editingOrder.pedido}</div>
+      <div className="mb-1 text-xl font-bold">Editar Pedido - {editingOrder.pedido}</div>
       <div className="mb-6 text-sm text-muted-foreground">{editingOrder.nomecliente}-{editingOrder.items?.[0]?.codcliente}</div>
 
       <div className="space-y-4">
+        <div>
+          <label className="mb-2 block text-md font-medium">Forma de pagamento</label>
+          <select
+            value={editPagamento}
+            onChange={(e) => setEditPagamento(e.target.value)}
+            className="h-14 w-full rounded-2xl border px-4"
+          >
+            <option value="A Receber">A Receber</option>
+            <option value="Dinheiro">Dinheiro</option>
+            <option value="Deposito Bancario">Deposito Bancário</option>
+            <option value="Boleto">Boleto</option>
+            <option value="Cheque">Cheque</option>
+            <option value="Consignado">Consignado</option>
+            <option value="PagSeguroF">PagSeguroF</option>
+            <option value="PagSeguroL">PagSeguroL</option>
+            <option value="PagSeguro3A">PagSeguro3A</option>
+            <option value="Infinit Pay">Infinit Pay</option>
+            <option value="PIX 3A">PIX 3A</option>
+            <option value="Cartao Debito">Cartao Debito</option>
+            <option value="Cartao Credito">Cartao Credito</option>
+            <option value="PIX L">PIX L</option>
+            <option value="PIX F">PIX F</option>
+          </select>
+        </div>
 
         <div>
           <label className="mb-2 block text-md font-medium">Observações</label>
