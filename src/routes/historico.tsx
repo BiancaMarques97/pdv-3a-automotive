@@ -190,7 +190,12 @@ async function downloadReceiptPDF() {
       windowWidth: receiptRef.current.scrollWidth,
     });
 
-    const imgData = canvas.toDataURL("image/png");
+    // JPEG com compressão em vez de PNG: o canhoto é só texto preto em
+    // fundo branco (sem transparência), então JPEG fica visualmente
+    // idêntico só que MUITO mais leve (PNG é sem perdas, por isso os
+    // 2+ MB que estavam saindo). Qualidade 0.85 já fica indistinguível
+    // a olho nu pra esse tipo de conteúdo.
+    const imgData = canvas.toDataURL("image/jpeg", 0.85);
 
     const pdfWidthMm = 80;
     const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
@@ -199,9 +204,10 @@ async function downloadReceiptPDF() {
       orientation: "portrait",
       unit: "mm",
       format: [pdfWidthMm, pdfHeightMm],
+      compress: true,
     });
 
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidthMm, pdfHeightMm);
+    pdf.addImage(imgData, "JPEG", 0, 0, pdfWidthMm, pdfHeightMm, undefined, "FAST");
    pdf.save(`${selectedOrder.pedido}-${selectedOrder.items[0]?.codcliente ?? ""}.pdf`);
   } catch (err) {
     console.error(err);
@@ -471,20 +477,6 @@ const groupedOrders = useMemo(
     </div>
   </>
 )}
-
-        <div className="m-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredOrders.map((order: any) => (
-            <OrderCard
-              key={order.pedido}
-              order={order}
-              sendingEmail={sendingId === order.pedido}
-              onView={handleView}
-              onDelete={handleDelete}
-              onExportXLS={handleExportXLS}
-              onSendEmail={handleSendEmail}
-            />
-          ))}
-        </div>
       </div>
 
   {selectedOrder && (
@@ -563,7 +555,7 @@ const groupedOrders = useMemo(
   <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
     <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
       <div className="mb-1 text-xl font-bold">Editar Pedido - {editingOrder.pedido}</div>
-      <div className="mb-6 text-sm text-muted-foreground">{editingOrder.nomecliente}-{editingOrder.items?.[0]?.codcliente}</div>
+      <div className="mb-6 text-sm text-muted-foreground">{editingOrder.nomecliente} - {editingOrder.items?.[0]?.codcliente}</div>
 
       <div className="space-y-4">
         <div>

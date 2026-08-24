@@ -90,9 +90,10 @@ export const ThermalReceipt = forwardRef<HTMLDivElement, ThermalReceiptProps>(
 
         <div className="text-[12px] font-bold">CLIENTE</div>
 
-        <div className="text-[12px]">
-          {customer?.name} - {customer?.Codigo}
-        </div>
+      
+        <div className="text-[14px]">
+  {customer?.name} - <strong style={{ fontWeight: 900, fontSize: '15px' }}>{customer?.Codigo}</strong>
+</div>
 
         <div className="my-2 border-t border-dashed border-black" />
 
@@ -188,7 +189,7 @@ export const ThermalReceipt = forwardRef<HTMLDivElement, ThermalReceiptProps>(
 
           <div>** VIA DO CLIENTE **</div>
         </div>
-      </div>
+      </div>  
     );
   },
 );
