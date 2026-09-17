@@ -12,12 +12,10 @@ type Product = {
 };
 
 export type OrderItem = {
+  id: string;
   product: Product;
-
   reposto: "CSG" | "CR" | "SR" | "VA";
-
   quantity: number;
-
   price: string;
 };
 

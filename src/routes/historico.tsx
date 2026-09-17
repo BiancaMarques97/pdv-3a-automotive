@@ -356,7 +356,7 @@ const groupedOrders = useMemo(
         <div className="flex items-center gap-3 p-4">
           <button
             onClick={() => setMenuOpen(true)}
-            className="rounded-md border p-2"
+            className="rounded-md border p-2 cursor-pointer"
           >
             ☰
           </button>
@@ -391,7 +391,7 @@ const groupedOrders = useMemo(
 
                 <button
                   onClick={() => setMenuOpen(false)}
-                  className="rounded-md p-2 text-zinc-500 hover:bg-zinc-100"
+                  className="rounded-md p-2 text-zinc-500 hover:bg-zinc-100 cursor-pointer"
                 >
                   <X size={18} />
                 </button>
@@ -445,7 +445,7 @@ const groupedOrders = useMemo(
 
   <button
     onClick={() => setPeriodModalOpen(true)}
-    className="flex h-12 items-center justify-center gap-2 rounded-2xl border-[1.5px] bg-orange-500/80 px-5 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 cursor-pointer"
+    className="flex h-12 items-center justify-center gap-2 rounded-2xl border-[1.5px] bg-[#F28C38] px-5 text-sm font-semibold text-white shadow-sm hover:bg-orange-400 cursor-pointer"
   >
     <Calendar className="h-5 w-5" />
     Baixar XLS por Período
@@ -493,7 +493,7 @@ const groupedOrders = useMemo(
  <div className="mb-3 flex justify-end gap-2 clear-both">
   <button
     onClick={() => openEditObs(selectedOrder)}
-    className="flex items-center gap-2 rounded-full bg-orange-500/90 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-orange-500 cursor-pointer"
+    className="flex items-center gap-2 rounded-full bg-[#F28C38] px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-orange-400 cursor-pointer"
   >
     <Pencil className="h-4 w-4" />
     Editar
@@ -501,7 +501,7 @@ const groupedOrders = useMemo(
 
   <button
     onClick={downloadReceiptPDF}
-    className="flex items-center gap-2 rounded-full bg-orange-500/90 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-orange-500 cursor-pointer"
+    className="flex items-center gap-2 rounded-full bg-[#F28C38] px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-orange-400 cursor-pointer"
   >
     <FileDownIcon className="h-4 w-4" />
     Baixar PDF
@@ -542,7 +542,7 @@ const groupedOrders = useMemo(
 
         <button
           onClick={reprintReceipt}
-          className="flex-1 rounded-2xl bg-orange-500/80 p-3 font-semibold text-white cursor-pointer hover:bg-orange-500 shadow-sm"
+          className="flex-1 rounded-2xl bg-[#F28C38] p-3 font-semibold text-white cursor-pointer hover:bg-orange-400 shadow-sm"
         >
           Imprimir
         </button>
@@ -606,7 +606,7 @@ const groupedOrders = useMemo(
         <button
           onClick={saveEditObs}
           disabled={savingEdit}
-          className="flex-1 rounded-2xl bg-orange-500/80 p-4 font-semibold text-white shadow-sm hover:bg-orange-500 disabled:opacity-50"
+          className="flex-1 rounded-2xl bg-[#F28C38] p-4 font-semibold text-white shadow-sm hover:bg-orange-400 disabled:opacity-50"
         >
           {savingEdit ? "Salvando..." : "Salvar"}
         </button>
@@ -634,7 +634,7 @@ const groupedOrders = useMemo(
 
       <button
         onClick={() => setToast(null)}
-        className="mt-6 w-full rounded-2xl p-4 text-lg font-semibold text-white shadow-sm bg-orange-500/80"
+        className="mt-6 w-full rounded-2xl p-4 text-lg font-semibold text-white shadow-sm bg-[#F28C38]"
       >
         OK
       </button>
@@ -679,8 +679,8 @@ const groupedOrders = useMemo(
   <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
     <div className="w-full max-w-sm rounded-3xl bg-white p-8 shadow-xl">
       <div className="flex flex-col items-center text-center">
-        <Calendar className="h-16 w-16 text-orange-500" />
-        <div className="mt-5 text-2xl font-bold">Baixar XLS por período</div>
+        <Calendar className="h-16 w-16" />
+        <div className="mt-5 text-2xl font-semibold">Baixar XLS por período</div>
         <div className="mt-2 text-md text-muted-foreground">
           Selecione o intervalo de datas dos pedidos
         </div>
@@ -715,14 +715,14 @@ const groupedOrders = useMemo(
             setStartDate("");
             setEndDate("");
           }}
-          className="flex-1 rounded-2xl border p-4 text-lg font-semibold text-zinc-600 hover:bg-zinc-100"
+          className="flex-1 rounded-2xl border p-4 text-lg font-semibold text-zinc-600 hover:bg-zinc-100 cursor-pointer"
         >
           Cancelar
         </button>
 
         <button
           onClick={handleExportByPeriod}
-          className="flex-1 rounded-2xl bg-orange-500/80 p-4 text-lg font-semibold text-white shadow-sm hover:bg-orange-500"
+          className="flex-1 rounded-2xl bg-[#F28C38] p-4 text-lg font-semibold text-white shadow-sm hover:bg-orange-400 cursor-pointer"
         >
           Baixar
         </button>

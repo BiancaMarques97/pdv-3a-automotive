@@ -101,7 +101,7 @@ if (!customer) {
             }
             className="rounded-md border p-2"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5 cursor-pointer" />
           </button>
 
           <div>
@@ -193,7 +193,8 @@ if (!customer) {
       },
     });
   }}
-  className="mt-6 h-14 w-full rounded-2xl text-base cursor-pointer"
+  className="mt-6 h-14 w-full text-md rounded-2xl cursor-pointer bg-[#F28C38] hover:bg-orange-400"
+
 >
   <Plus className="mr-2 h-5 w-5" />
   Novo Pedido

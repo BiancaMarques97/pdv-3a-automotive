@@ -218,7 +218,7 @@ function ClientesPage() {
 
         <div className="sticky top-0 z-20 border-b bg-background">
           <div className="flex items-center gap-3 p-4">
-            <button onClick={() => setMenuOpen(true)} className="rounded-md border p-2">
+            <button onClick={() => setMenuOpen(true)} className="rounded-md border p-2 cursor-pointer">
               ☰
             </button>
 
@@ -251,7 +251,7 @@ function ClientesPage() {
                 </div>
                 <button
                   onClick={() => setMenuOpen(false)}
-                  className="rounded-md p-2 text-zinc-500 hover:bg-zinc-100"
+                  className="rounded-md p-2 text-zinc-500 hover:bg-zinc-100 cursor-pointer"
                 >
                   <X size={18} />
                 </button>
@@ -325,7 +325,7 @@ function ClientesPage() {
 
             <div className="flex w-full flex-col gap-3 sm:flex-row">
               <Button
-                className="h-12 w-full rounded-xl cursor-pointer"
+                 className="h-12 w-full rounded-2xl cursor-pointer bg-[#F28C38] hover:bg-orange-400"
                 onClick={() => productFileInputRef.current?.click()}
               >
                 <Upload className="mr-2 h-4 w-4" />
@@ -333,7 +333,7 @@ function ClientesPage() {
               </Button>
 
               <Button
-                className="h-12 w-full rounded-xl cursor-pointer"
+                 className="h-12 w-full rounded-2xl cursor-pointer bg-[#F28C38] hover:bg-orange-400"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Upload className="mr-2 h-4 w-4" />
@@ -362,7 +362,7 @@ function ClientesPage() {
                   className="flex w-full items-center justify-between rounded-2xl border bg-background p-4 text-left transition hover:bg-muted/50 shadow-sm cursor-pointer"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-200 text-orange-500">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-200 bg-[#F28C38]">
                       👤
                     </div>
 
@@ -393,7 +393,7 @@ function ClientesPage() {
         {pendingImportProducts && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
             <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
-              <Upload className="mx-auto h-10 w-10 text-orange-500" />
+              <Upload className="mx-auto h-10 w-10 bg-[#F28C38]" />
 
               <div className="mt-5 text-2xl font-bold">Confirmar importação</div>
 
@@ -454,7 +454,7 @@ function ClientesPage() {
         {pendingImport && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
             <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
-              <Upload className="mx-auto h-10 w-10 text-orange-500" />
+              <Upload className="mx-auto h-10 w-10 bg-[#F28C38]" />
 
               <div className="mt-5 text-2xl font-bold">Confirmar importação</div>
 

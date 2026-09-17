@@ -161,7 +161,7 @@ async function onSubmit(e: React.FormEvent) {
             <Button
   type="submit"
   disabled={loading}
-  className="h-14 w-full rounded-2xl text-medium font-semibold uppercase tracking-wide text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 active:scale-[0.99] disabled:opacity-70 cursor-pointer"
+  className="h-14 w-full rounded-2xl text-medium bg-[#F28C38] font-semibold uppercase tracking-wide text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-orange-400 active:scale-[0.99] disabled:opacity-70 cursor-pointer"
 >
   {loading ? (
     "Entrando..."

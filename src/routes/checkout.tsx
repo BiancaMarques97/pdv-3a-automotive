@@ -130,7 +130,7 @@ async function finalizeOrder() {
               }
               className="rounded-md border p-2"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 cursor-pointer" />
             </button>
 
             <div>
@@ -227,16 +227,25 @@ async function finalizeOrder() {
               <div className="text-lg font-bold">Resumo do pedido</div>
 
               <div className="mt-6 space-y-3">
-                {items.map((item) => (
-                  <div key={item.product.CodProduto} className="flex justify-between text-sm">
-                    <span>
-                      {item.quantity} x {item.product.Descricao} - {item.product.Codigo}
-                    </span>
-                    <span>
-                      R$ {(item.quantity * Number(item.price.replace(",", "."))).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
+              {items.map((item) => (
+<div key={item.id} className="flex justify-between items-start text-sm py-2">
+  {/* Esta div agrupa o texto da esquerda e força a quebra de linha vertical */}
+  <div className="flex flex-col">
+    <span>
+      {item.quantity} x {item.product.Descricao} - {item.product.Codigo}
+    </span>
+    {/* O item.reposto agora fica exatamente na linha de baixo */}
+    <span className="text-red-600 font-semibold text-xs mt-1">
+      {item.reposto}
+    </span>
+  </div>
+
+  {/* O preço continua alinhado à direita da caixa principal */}
+  <span className="font-semibold">
+    R$ {(item.quantity * Number(item.price.replace(",", "."))).toFixed(2)}
+  </span>
+</div>
+))}
               </div>
 
               <div className="mt-6 border-t pt-4">
@@ -251,7 +260,7 @@ async function finalizeOrder() {
      <button
   onClick={finalizeOrder}
   disabled={!canFinalize || finalizing}
-  className="mt-6 h-14 w-full rounded-2xl bg-orange-500/80 text-lg font-semibold text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+  className="mt-6 h-14 w-full rounded-2xl bg-[#F28C38] hover:bg-orange-400 text-lg font-semibold text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
 >
   {finalizing ? "Finalizando..." : "Finalizar Pedido"}
 </button>

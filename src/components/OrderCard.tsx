@@ -66,7 +66,7 @@ function OrderCardComponent({
       <div className="mt-6 flex flex-col gap-3">
         <button
           onClick={() => onView(order)}
-          className="flex flex-1 items-center justify-center gap-2 border-[1.5px] rounded-2xl bg-orange-500/80 text-sm font-semibold text-white p-3 cursor-pointer hover:bg-orange-500 shadow-sm"
+          className="flex flex-1 items-center justify-center gap-2 border-[1.5px] rounded-2xl bg-[#F28C38] text-sm font-semibold text-white p-3 cursor-pointer hover:bg-orange-400 shadow-sm"
         >
           <Eye className="h-5 w-5" />
           Visualizar
@@ -74,7 +74,7 @@ function OrderCardComponent({
 
         <button
           onClick={() => onExportXLS(order)}
-          className="flex flex-1 items-center justify-center gap-2 border-[1.5px] rounded-2xl bg-orange-500/80 text-sm font-semibold text-white p-3 cursor-pointer hover:bg-orange-500 shadow-sm"
+          className="flex flex-1 items-center justify-center gap-2 border-[1.5px] rounded-2xl bg-[#F28C38] text-sm font-semibold text-white p-3 cursor-pointer hover:bg-orange-400 shadow-sm"
         >
           <FileDownIcon className="h-5 w-5" /> Baixar XLS
         </button>
@@ -82,7 +82,7 @@ function OrderCardComponent({
         <button
           onClick={() => onSendEmail(order)}
           disabled={sendingEmail}
-          className="flex flex-1 items-center justify-center gap-2 border-[1.5px] rounded-2xl bg-orange-500/80 text-sm font-semibold text-white p-3 cursor-pointer hover:bg-orange-500 shadow-sm"
+          className="flex flex-1 items-center justify-center gap-2 border-[1.5px] rounded-2xl bg-[#F28C38] text-sm font-semibold text-white p-3 cursor-pointer hover:bg-orange-400 shadow-sm"
         >
           <Mail className="h-5 w-5" /> Enviar XLS por Email
         </button>

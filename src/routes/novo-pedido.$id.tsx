@@ -120,52 +120,37 @@ function PedidoPage() {
   );
 
   function addProduct(product: Product) {
-    const exists = items.find((i) => i.product.CodProduto === product.CodProduto);
+  // Sempre cria uma linha NOVA, mesmo que o produto já esteja no carrinho —
+  // assim dá pra ter "Cabo de Vela 001-1" duas vezes, cada um com um
+  // tipo de venda (reposto) diferente.
+  setItemsStore([
+    {
+      id: crypto.randomUUID(),
+      product,
+      reposto: "CR",
+      quantity: 1,
+      price: product.Valor_Un.toString(),
+    },
+    ...items,
+  ]);
+}
 
-    if (exists) {
-      setItemsStore(
-        items.map((i) =>
-          i.product.CodProduto === product.CodProduto
-            ? {
-                ...i,
-                quantity: i.quantity + 1,
-              }
-            : i,
-        ),
-      );
+ function changeQty(itemId: string, amount: number) {
+  setItemsStore(
+    items
+      .map((item) => {
+        if (item.id !== itemId) {
+          return item;
+        }
 
-      return;
-    }
-
-    // Novo item entra no INÍCIO da lista, não no final
-    setItemsStore([
-      {
-        product,
-        reposto: "CR",
-        quantity: 1,
-        price: product.Valor_Un.toString(),
-      },
-      ...items,
-    ]);
-  }
-
-  function changeQty(codProduto: string, amount: number) {
-    setItemsStore(
-      items
-        .map((item) => {
-          if (item.product.CodProduto !== codProduto) {
-            return item;
-          }
-
-          return {
-            ...item,
-
-            quantity: item.quantity + amount,
-          };
-        })
-        .filter((i) => i.quantity > 0),
-    );
-  }
+        return {
+          ...item,
+          quantity: item.quantity + amount,
+        };
+      })
+      .filter((i) => i.quantity > 0),
+  );
+}
 
   const total = useMemo(() => {
     return items.reduce(
@@ -202,7 +187,7 @@ function PedidoPage() {
               }
               className="rounded-md border p-2"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 cursor-pointer" />
             </button>
 
             <div>
@@ -269,7 +254,7 @@ function PedidoPage() {
 
               {items.map((item) => (
                 <div
-                  key={item.product.CodProduto}
+                  key={item.id}
                   className="rounded-2xl border bg-background p-4 shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -283,110 +268,79 @@ function PedidoPage() {
                       {/* PREÇO */}
 
                       <div className="mt-2">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={item.price}
-                          onChange={(e) => {
-                            // REMOVE TUDO
-                            // QUE NÃO FOR NÚMERO
+                       <input
+  type="text"
+  inputMode="numeric"
+  value={item.price}
+  onChange={(e) => {
+    const onlyNumbers = e.target.value.replace(/\D/g, "");
 
-                            const onlyNumbers = e.target.value.replace(/\D/g, "");
+    if (!onlyNumbers) {
+      setItemsStore(
+        items.map((i) =>
+          i.id === item.id ? { ...i, price: "" } : i,
+        ),
+      );
 
-                            // VAZIO
+      return;
+    }
 
-                            if (!onlyNumbers) {
-                              setItemsStore(
-                                items.map((i) =>
-                                  i.product.CodProduto === item.product.CodProduto
-                                    ? {
-                                        ...i,
+    const formatted = (Number(onlyNumbers) / 100).toFixed(2).replace(".", ",");
 
-                                        price: "",
-                                      }
-                                    : i,
-                                ),
-                              );
-
-                              return;
-                            }
-
-                            // FORMATA
-                            // AUTOMATICAMENTE
-
-                            const formatted = (Number(onlyNumbers) / 100)
-                              .toFixed(2)
-                              .replace(".", ",");
-
-                            setItemsStore(
-                              items.map((i) =>
-                                i.product.CodProduto === item.product.CodProduto
-                                  ? {
-                                      ...i,
-
-                                      price: formatted,
-                                    }
-                                  : i,
-                              ),
-                            );
-                          }}
-                          className="h-10 w-32 rounded-xl border px-3 text-sm"
-                        />
+    setItemsStore(
+      items.map((i) =>
+        i.id === item.id ? { ...i, price: formatted } : i,
+      ),
+    );
+  }}
+  className="h-10 w-32 rounded-xl border px-3 text-sm"
+/>
                       </div>
                       {/* QUANTIDADE */}
 
                       <div className="mt-4 flex items-center gap-3">
-                        <button
-                          onClick={() => changeQty(item.product.CodProduto, -1)}
-                          className="flex h-10 w-10 items-center justify-center rounded-xl border"
-                        >
-                          -
-                        </button>
+                      <button
+  onClick={() => changeQty(item.id, -1)}
+  className="flex h-10 w-10 items-center justify-center rounded-xl border cursor-pointer"
+>
+  -
+</button>
 
                         <div className="w-8 text-center font-bold">{item.quantity}</div>
 
-                        <button
-                          onClick={() => changeQty(item.product.CodProduto, 1)}
-                          className="flex h-10 w-10 items-center justify-center rounded-xl border"
-                        >
-                          +
-                        </button>
+                     <button
+  onClick={() => changeQty(item.id, 1)}
+  className="flex h-10 w-10 items-center justify-center rounded-xl border cursor-pointer"
+>
+  +
+</button>
                       </div>
                     </div>
 
                     {/* DIREITA */}
 
                     <div className="flex flex-col items-end gap-4">
-                      <button onClick={() => changeQty(item.product.CodProduto, -999)}>
-                        <Trash2 className="h-5 w-5 text-red-500" />
-                      </button>
+                     <button onClick={() => changeQty(item.id, -999)}>
+  <Trash2 className="h-5 w-5 text-red-500 cursor-pointer" />
+</button>
 
                       <div>
-                        <select
-                          value={item.reposto}
-                          onChange={(e) => {
-                            setItemsStore(
-                              items.map((i) =>
-                                i.product.CodProduto === item.product.CodProduto
-                                  ? {
-                                      ...i,
-
-                                      reposto: e.target.value as any,
-                                    }
-                                  : i,
-                              ),
-                            );
-                          }}
-                          className="h-11 rounded-xl border px-3 text-sm"
-                        >
-                          <option value="CSG">CONSIGNADO</option>
-
-                          <option value="CR">COM REPOSIÇÃO</option>
-
-                          <option value="SR">SEM REPOSIÇÃO</option>
-
-                          <option value="VA">VENDA AVULSA</option>
-                        </select>
+                       <select
+  value={item.reposto}
+  onChange={(e) => {
+    setItemsStore(
+      items.map((i) =>
+        i.id === item.id ? { ...i, reposto: e.target.value as any } : i,
+      ),
+    );
+  }}
+  className="h-11 rounded-xl border px-3 text-sm"
+>
+  <option value="CSG">CONSIGNADO</option>
+  <option value="CR">COM REPOSIÇÃO</option>
+  <option value="SR">SEM REPOSIÇÃO</option>
+  <option value="VA">VENDA AVULSA</option>
+</select>
                       </div>
 
                       {/* TOTAL ITEM */}
@@ -414,7 +368,8 @@ function PedidoPage() {
 
             <Button
               disabled={items.length === 0}
-              className="h-14 rounded-2xl px-8 text-base shadow-lg cursor-pointer"
+              className="h-14 rounded-2xl px-8 text-base shadow-lg cursor-pointer bg-[#F28C38] hover:bg-orange-400"
+          
               onClick={() => {
                 setOrderCustomer(customer);
 
