@@ -63,4 +63,12 @@ export const pedidoAPI = {
       throw error;
     }
   },
+
+  updateItemReposto: async (id: number, reposto: string) => {
+    const { error } = await supabase.from("pedido_vendatemp").update({ reposto }).eq("id", id);
+
+    if (error) {
+      throw error;
+    }
+  },
 };

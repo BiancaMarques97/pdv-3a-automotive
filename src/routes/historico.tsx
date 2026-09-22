@@ -73,6 +73,7 @@ const [editObs, setEditObs] = useState("");
 const [savingEdit, setSavingEdit] = useState(false);
 const [loadingOrders, setLoadingOrders] = useState(true);
 const [editPagamento, setEditPagamento] = useState("");
+const [editItems, setEditItems] = useState<any[]>([]);
 
  useEffect(() => {
   async function load() {
@@ -96,6 +97,20 @@ function openEditObs(order: any) {
   setEditingOrder(order);
   setEditObs(order.items?.[0]?.obs || "");
   setEditPagamento(order.pagamento || "");
+  setEditItems(
+    order.items.map((item: any) => ({
+      id: item.id,
+      codproduto: item.codproduto,
+      descricao: item.descricao,
+      reposto: item.reposto,
+    })),
+  );
+}
+
+function changeEditItemReposto(id: number, reposto: string) {
+  setEditItems((prev) =>
+    prev.map((item) => (item.id === id ? { ...item, reposto } : item)),
+  );
 }
 
 async function saveEditObs() {
@@ -109,16 +124,33 @@ async function saveEditObs() {
       pagamento: editPagamento,
     });
 
+    // Salva o reposto de cada linha individualmente
+    await Promise.all(
+      editItems.map((item) => pedidoAPI.updateItemReposto(item.id, item.reposto)),
+    );
+
+    const repostoById = new Map(editItems.map((item) => [item.id, item.reposto]));
+
     const updateOrderFields = (order: any) => ({
       ...order,
       pagamento: editPagamento,
-      items: order.items.map((item: any) => ({ ...item, obs: editObs, pagamento: editPagamento })),
+      items: order.items.map((item: any) => ({
+        ...item,
+        obs: editObs,
+        pagamento: editPagamento,
+        reposto: repostoById.get(item.id) ?? item.reposto,
+      })),
     });
 
     setOrders((prev) =>
       prev.map((item: any) =>
         item.pedido === editingOrder.pedido
-          ? { ...item, obs: editObs, pagamento: editPagamento }
+          ? {
+              ...item,
+              obs: editObs,
+              pagamento: editPagamento,
+              reposto: repostoById.get(item.id) ?? item.reposto,
+            }
           : item,
       ),
     );
@@ -553,67 +585,127 @@ const groupedOrders = useMemo(
 
 {editingOrder && (
   <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
-    <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
-      <div className="mb-1 text-xl font-bold">Editar Pedido - {editingOrder.pedido}</div>
-      <div className="mb-6 text-sm text-muted-foreground">{editingOrder.nomecliente} - {editingOrder.items?.[0]?.codcliente}</div>
+    <div className="flex w-full max-w-md max-h-[90vh] flex-col overflow-hidden rounded-3xl bg-white shadow-xl">
 
-      <div className="space-y-4">
-        <div>
-          <label className="mb-2 block text-md font-medium">Forma de pagamento</label>
-          <select
-            value={editPagamento}
-            onChange={(e) => setEditPagamento(e.target.value)}
-            className="h-14 w-full rounded-2xl border px-4"
+      {/* CABEÇALHO */}
+      <div className="shrink-0 border-b bg-white px-6 py-5">
+        <div className="text-xl font-bold">
+          Editar Pedido - {editingOrder.pedido}
+        </div>
+
+        <div className="mt-1 text-sm text-muted-foreground">
+          {editingOrder.nomecliente} - {editingOrder.items?.[0]?.codcliente}
+        </div>
+      </div>
+
+      {/* CONTEÚDO COM SCROLL */}
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+        <div className="space-y-4">
+
+          <div>
+            <label className="mb-2 block text-md font-medium">
+              Forma de pagamento
+            </label>
+
+            <select
+              value={editPagamento}
+              onChange={(e) => setEditPagamento(e.target.value)}
+              className="h-14 w-full rounded-2xl border px-4"
+            >
+              <option value="A Receber">A Receber</option>
+              <option value="Dinheiro">Dinheiro</option>
+              <option value="Deposito Bancario">Deposito Bancário</option>
+              <option value="Boleto">Boleto</option>
+              <option value="Cheque">Cheque</option>
+              <option value="Consignado">Consignado</option>
+              <option value="PagSeguroF">PagSeguroF</option>
+              <option value="PagSeguroL">PagSeguroL</option>
+              <option value="PagSeguro3A">PagSeguro3A</option>
+              <option value="Infinit Pay">Infinit Pay</option>
+              <option value="PIX 3A">PIX 3A</option>
+              <option value="Cartao Debito">Cartao Debito</option>
+              <option value="Cartao Credito">Cartao Credito</option>
+              <option value="PIX L">PIX L</option>
+              <option value="PIX F">PIX F</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-md font-medium">
+              Tipo de venda por item
+            </label>
+
+            <div className="space-y-2">
+              {editItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between gap-3 rounded-2xl border p-3"
+                >
+                  <div className="min-w-0 flex-1 truncate font-semibold text-sm">
+                    {item.codproduto} -{" "}
+                    <span className="text-muted-foreground">
+                      {item.descricao}
+                    </span>
+                  </div>
+
+                  <select
+                    value={item.reposto}
+                    onChange={(e) =>
+                      changeEditItemReposto(item.id, e.target.value)
+                    }
+                    className="h-10 shrink-0 rounded-xl border px-2 text-sm"
+                  >
+                    <option value="CSG">CONSIGNADO</option>
+                    <option value="CR">COM REPOSIÇÃO</option>
+                    <option value="SR">SEM REPOSIÇÃO</option>
+                    <option value="VA">VENDA AVULSA</option>
+                  </select>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-md font-medium">
+              Observações
+            </label>
+
+            <textarea
+              value={editObs}
+              onChange={(e) => setEditObs(e.target.value)}
+              className="min-h-32 w-full rounded-2xl border p-4"
+              placeholder="Digite as observações do pedido aqui..."
+            />
+          </div>
+
+        </div>
+      </div>
+
+      {/* BOTÕES FIXOS NO RODAPÉ */}
+      <div className="shrink-0 border-t bg-white px-6 py-5">
+        <div className="flex gap-3">
+          <button
+            onClick={() => setEditingOrder(null)}
+            disabled={savingEdit}
+            className="flex-1 rounded-2xl border p-4 font-semibold text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
           >
-            <option value="A Receber">A Receber</option>
-            <option value="Dinheiro">Dinheiro</option>
-            <option value="Deposito Bancario">Deposito Bancário</option>
-            <option value="Boleto">Boleto</option>
-            <option value="Cheque">Cheque</option>
-            <option value="Consignado">Consignado</option>
-            <option value="PagSeguroF">PagSeguroF</option>
-            <option value="PagSeguroL">PagSeguroL</option>
-            <option value="PagSeguro3A">PagSeguro3A</option>
-            <option value="Infinit Pay">Infinit Pay</option>
-            <option value="PIX 3A">PIX 3A</option>
-            <option value="Cartao Debito">Cartao Debito</option>
-            <option value="Cartao Credito">Cartao Credito</option>
-            <option value="PIX L">PIX L</option>
-            <option value="PIX F">PIX F</option>
-          </select>
-        </div>
+            Cancelar
+          </button>
 
-        <div>
-          <label className="mb-2 block text-md font-medium">Observações</label>
-          <textarea
-            value={editObs}
-            onChange={(e) => setEditObs(e.target.value)}
-            className="min-h-32 w-full rounded-2xl border p-4"
-            placeholder="Digite as observações do pedido aqui..."
-          />
+          <button
+            onClick={saveEditObs}
+            disabled={savingEdit}
+            className="flex-1 rounded-2xl bg-[#F28C38] p-4 font-semibold text-white shadow-sm hover:bg-orange-400 disabled:opacity-50"
+          >
+            {savingEdit ? "Salvando..." : "Salvar"}
+          </button>
         </div>
       </div>
 
-      <div className="mt-6 flex gap-3">
-        <button
-          onClick={() => setEditingOrder(null)}
-          disabled={savingEdit}
-          className="flex-1 rounded-2xl border p-4 font-semibold text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
-        >
-          Cancelar
-        </button>
-
-        <button
-          onClick={saveEditObs}
-          disabled={savingEdit}
-          className="flex-1 rounded-2xl bg-[#F28C38] p-4 font-semibold text-white shadow-sm hover:bg-orange-400 disabled:opacity-50"
-        >
-          {savingEdit ? "Salvando..." : "Salvar"}
-        </button>
-      </div>
     </div>
   </div>
 )}
+
 
            {toast && (
   <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/60 p-4">
