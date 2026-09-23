@@ -118,7 +118,10 @@ function HistoricoPage() {
   }, [search]);
 
   // NOVO: Efeito 2 - Faz a busca no banco de dados quando o debouncedSearch muda
+  // SUBSTUA PELO NOVO CÓDIGO CORRIGIDO:
   useEffect(() => {
+    let requisicaoCancelada = false;
+
     async function performSearch() {
       if (!debouncedSearch.trim()) {
         setSearchResults(null);
@@ -127,17 +130,42 @@ function HistoricoPage() {
       try {
         setSearching(true);
         const data = await pedidoAPI.search(debouncedSearch);
-        setSearchResults(data || []);
-      } catch (error) {
-        console.error(error);
-        setToast({ type: "error", message: "Erro ao buscar pedidos." });
-      } finally {
-        setSearching(false);
+        
+       if (!requisicaoCancelada) {
+    const term = debouncedSearch.trim().toLowerCase();
+    
+    // Se a busca começar com "pdv-", faz um filtro exato pelo código do pedido
+    let filtered = data || [];
+    if (term.startsWith("pdv-")) {
+      const exactMatch = filtered.filter(
+        (item: any) => String(item.pedido).toLowerCase() === term
+      );
+      // Se encontrou o exato, mostra só ele. Se não encontrou, mostra a lista geral.
+      if (exactMatch.length > 0) {
+        filtered = exactMatch;
       }
     }
-    performSearch();
-  }, [debouncedSearch]);
 
+    setSearchResults(filtered);
+  }
+      } catch (error) {
+        console.error(error);
+        if (!requisicaoCancelada) {
+          setToast({ type: "error", message: "Erro ao buscar pedidos." });
+        }
+      } finally {
+        if (!requisicaoCancelada) {
+          setSearching(false);
+        }
+      }
+    }
+    
+    performSearch();
+
+    return () => {
+      requisicaoCancelada = true;
+    };
+  }, [debouncedSearch]);
   // NOVO: Função que busca no banco ao clicar em "Filtrar" no modal
   async function handleApplyDateFilter() {
     if (!tempStartDate || !tempEndDate) {
