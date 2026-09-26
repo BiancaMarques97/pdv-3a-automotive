@@ -18,7 +18,8 @@ import {
   Trash2,
   Pencil,
   LogOut,
-  Filter
+  Filter,
+  Share2
 } from "lucide-react";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -53,13 +54,14 @@ function HistoricoPage() {
   }
   const zebra = zebraRef.current;
   const receiptRef = useRef<HTMLDivElement>(null);
+const shareReceiptRef = useRef<HTMLDivElement>(null);
+const [shareOrder, setShareOrder] = useState<any>(null);
+const [sharingId, setSharingId] = useState<string | null>(null);
   
   const [menuOpen, setMenuOpen] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  
-  // NOVO: Estados de busca
-  
+
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [searchResults, setSearchResults] = useState<any[] | null>(null);
@@ -197,6 +199,111 @@ function HistoricoPage() {
     setTempEndDate("");
     setActiveFilterText("");
   }
+
+  async function handleShareReceipt(order: any) {
+  try {
+    setSharingId(order.pedido);
+
+    // Renderiza o canhoto escondido
+    setShareOrder(order);
+
+    // Aguarda o React montar o ThermalReceipt
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    if (!shareReceiptRef.current) {
+      throw new Error("Não foi possível montar o canhoto.");
+    }
+
+    const canvas = await html2canvas(shareReceiptRef.current, {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      useCORS: true,
+      width: shareReceiptRef.current.scrollWidth,
+      windowWidth: shareReceiptRef.current.scrollWidth,
+    });
+
+    const imgData = canvas.toDataURL("image/jpeg", 0.85);
+
+    const pdfWidthMm = 80;
+    const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: [pdfWidthMm, pdfHeightMm],
+      compress: true,
+    });
+
+    pdf.addImage(
+      imgData,
+      "JPEG",
+      0,
+      0,
+      pdfWidthMm,
+      pdfHeightMm,
+      undefined,
+      "FAST"
+    );
+
+    const nomeArquivo =
+      `${order.pedido}-${order.items?.[0]?.codcliente ?? ""}.pdf`;
+
+    // Em vez de pdf.save(), gera o PDF em memória
+    const pdfBlob = pdf.output("blob");
+
+    const file = new File(
+      [pdfBlob],
+      nomeArquivo,
+      { type: "application/pdf" }
+    );
+
+    // Verifica se o navegador suporta compartilhar arquivos
+    if (
+      navigator.share &&
+      navigator.canShare &&
+      navigator.canShare({ files: [file] })
+    ) {
+      await navigator.share({
+        files: [file],
+        title: `Pedido ${order.pedido}`,
+        text: `Canhoto do pedido ${order.pedido} - ${order.nomecliente}`,
+      });
+
+      return;
+    }
+
+    // Fallback caso o navegador não suporte compartilhamento
+    const url = URL.createObjectURL(pdfBlob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = nomeArquivo;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+
+    setToast({
+      type: "success",
+      message:
+        "Seu navegador não permite compartilhamento direto. O PDF foi baixado.",
+    });
+  } catch (err: any) {
+    console.error(err);
+
+    // Fechar a tela de compartilhamento do Android não é realmente um erro
+    if (err?.name !== "AbortError") {
+      setToast({
+        type: "error",
+        message: "Não foi possível compartilhar o PDF.",
+      });
+    }
+  } finally {
+    setSharingId(null);
+    setShareOrder(null);
+  }
+}
 
   function openEditObs(order: any) {
     setEditingOrder(order);
@@ -618,15 +725,17 @@ function HistoricoPage() {
 
               <div className="m-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {displayOrders.map((order: any) => (
-                  <OrderCard
-                    key={order.pedido}
-                    order={order}
-                    sendingEmail={sendingId === order.pedido}
-                    onView={handleView}
-                    onDelete={handleDelete}
-                    onExportXLS={handleExportXLS}
-                    onSendEmail={handleSendEmail}
-                  />
+                 <OrderCard
+  key={order.pedido}
+  order={order}
+  sendingEmail={sendingId === order.pedido}
+  sharing={sharingId === order.pedido}
+  onView={handleView}
+  onDelete={handleDelete}
+  onShare={handleShareReceipt}
+  onExportXLS={handleExportXLS}
+  onSendEmail={handleSendEmail}
+/>
                 ))}
               </div>
 
@@ -872,6 +981,44 @@ function HistoricoPage() {
             </div>
           </div>
         )}
+
+        {shareOrder && (
+  <div
+    style={{
+      position: "fixed",
+      left: "-10000px",
+      top: 0,
+      width: "400px",
+      background: "#ffffff",
+      pointerEvents: "none",
+    }}
+  >
+    <div ref={shareReceiptRef}>
+      <ThermalReceipt
+        customer={{
+          Codigo: shareOrder.items?.[0]?.codcliente,
+          name: shareOrder.nomecliente,
+        }}
+        items={shareOrder.items.map((item: any) => ({
+          quantity: item.qtde,
+          price: String(item.valor_un),
+          reposto: item.reposto,
+          product: {
+            CodProduto: item.codproduto,
+            Codigo: item.codproduto,
+            Descricao: item.descricao,
+          },
+        }))}
+        payment={shareOrder.pagamento}
+        obs={shareOrder.items?.[0]?.obs || ""}
+        responsavel={shareOrder.items?.[0]?.responsavel || ""}
+        pedido={shareOrder.pedido}
+        data={shareOrder.data}
+        assinatura={shareOrder.items?.[0]?.assinatura}
+      />
+    </div>
+  </div>
+)}
 
         {toast && (
           <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/60 p-4">
