@@ -19,7 +19,8 @@ import {
   Pencil,
   LogOut,
   Filter,
-  Share2
+  Share2,
+  ClipboardList
 } from "lucide-react";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -655,6 +656,16 @@ const [sharingId, setSharingId] = useState<string | null>(null);
                     <FileText size={20} />
                     Histórico
                   </button>
+                  <button
+  onClick={() => {
+    navigate({ to: "/consignado" });
+    setMenuOpen(false);
+  }}
+  className="flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100 cursor-pointer"
+>
+  <ClipboardList size={20} />
+  Consignados
+</button>
                   <button
                     onClick={handleLogout}
                     className="mt-auto flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-red-600 transition hover:bg-red-50 cursor-pointer"

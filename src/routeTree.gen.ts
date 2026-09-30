@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as PedidoFinalizadoRouteImport } from './routes/pedido-finalizado'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HistoricoRouteImport } from './routes/historico'
+import { Route as ConsignadoRouteImport } from './routes/consignado'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as IndexRouteImport } from './routes/index'
@@ -31,6 +32,11 @@ const LoginRoute = LoginRouteImport.update({
 const HistoricoRoute = HistoricoRouteImport.update({
   id: '/historico',
   path: '/historico',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsignadoRoute = ConsignadoRouteImport.update({
+  id: '/consignado',
+  path: '/consignado',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientesRoute = ClientesRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
+  '/consignado': typeof ConsignadoRoute
   '/historico': typeof HistoricoRoute
   '/login': typeof LoginRoute
   '/pedido-finalizado': typeof PedidoFinalizadoRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
+  '/consignado': typeof ConsignadoRoute
   '/historico': typeof HistoricoRoute
   '/login': typeof LoginRoute
   '/pedido-finalizado': typeof PedidoFinalizadoRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
+  '/consignado': typeof ConsignadoRoute
   '/historico': typeof HistoricoRoute
   '/login': typeof LoginRoute
   '/pedido-finalizado': typeof PedidoFinalizadoRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/checkout'
     | '/clientes'
+    | '/consignado'
     | '/historico'
     | '/login'
     | '/pedido-finalizado'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/checkout'
     | '/clientes'
+    | '/consignado'
     | '/historico'
     | '/login'
     | '/pedido-finalizado'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/checkout'
     | '/clientes'
+    | '/consignado'
     | '/historico'
     | '/login'
     | '/pedido-finalizado'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CheckoutRoute: typeof CheckoutRoute
   ClientesRoute: typeof ClientesRoute
+  ConsignadoRoute: typeof ConsignadoRoute
   HistoricoRoute: typeof HistoricoRoute
   LoginRoute: typeof LoginRoute
   PedidoFinalizadoRoute: typeof PedidoFinalizadoRoute
@@ -155,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/historico'
       fullPath: '/historico'
       preLoaderRoute: typeof HistoricoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consignado': {
+      id: '/consignado'
+      path: '/consignado'
+      fullPath: '/consignado'
+      preLoaderRoute: typeof ConsignadoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clientes': {
@@ -199,6 +219,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CheckoutRoute: CheckoutRoute,
   ClientesRoute: ClientesRoute,
+  ConsignadoRoute: ConsignadoRoute,
   HistoricoRoute: HistoricoRoute,
   LoginRoute: LoginRoute,
   PedidoFinalizadoRoute: PedidoFinalizadoRoute,

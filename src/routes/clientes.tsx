@@ -2,7 +2,7 @@ import logo3a from "@/assets/logo-3a.png";
 import { Button } from "@/components/layout/button";
 import { Input } from "@/components/layout/input";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { CheckCircle2, ChevronRight, FileText, LogOut, MapPin, Phone, Search, Upload, Users, X, XCircle } from "lucide-react";
+import { CheckCircle2, ChevronRight, FileText, LogOut, MapPin, Phone, Search, Upload, Users, WalletCards, X, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { customersAPI } from "@/services/customers";
@@ -275,7 +275,16 @@ function ClientesPage() {
                 >
                   <FileText size={20} /> Histórico
                 </button>
-
+<button
+  onClick={() => {
+    navigate({ to: "/consignado" });
+    setMenuOpen(false);
+  }}
+  className="flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100 cursor-pointer"
+>
+  <WalletCards size={20} />
+  Consignados
+</button>
                 <button
                   onClick={handleLogout}
                   className="mt-auto flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-red-600 transition hover:bg-red-50 cursor-pointer"
