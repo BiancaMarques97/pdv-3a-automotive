@@ -2,7 +2,7 @@ import { supabase } from "./supabase";
 
 export const REPOSTO_OPTIONS = [
   {
-    label: "CSG - CONSIGNADO",
+    label: "CSG - a_receber",
     value: "CSG",
   },
   {

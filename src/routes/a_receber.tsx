@@ -4,7 +4,7 @@ import { Input } from "@/components/layout/input";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Spinner } from "@/components/Spinner";
 import { requireAuth } from "@/lib/auth";
-import { consignadosAPI, type ClienteConsignado } from "@/services/consignados-api";
+import { a_recebersAPI, type Clientea_receber } from "@/services/a_receber-api";
 import { supabase } from "@/services/supabase";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
@@ -14,9 +14,9 @@ import {
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import * as XLSX from "xlsx";
 
-export const Route = createFileRoute("/consignado")({
+export const Route = createFileRoute("/a_receber")({
   beforeLoad: requireAuth,
-  component: ConsignadosPage,
+  component: a_recebersPage,
 });
 
 function normalizarTexto(valor: unknown) {
@@ -70,24 +70,24 @@ function formatarValor(valor: number) {
   return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function ConsignadosPage() {
+function a_recebersPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
-  const [clientes, setClientes] = useState<ClienteConsignado[]>([]);
+  const [clientes, setClientes] = useState<Clientea_receber[]>([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
-  const [pendingImport, setPendingImport] = useState<ClienteConsignado[] | null>(null);
+  const [pendingImport, setPendingImport] = useState<Clientea_receber[] | null>(null);
   const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     let active = true;
-    consignadosAPI.list()
+    a_recebersAPI.list()
       .then((data) => { if (active) setClientes(data); })
       .catch((error) => {
         console.error(error);
-        if (active) setToast({ type: "error", message: "Não foi possível carregar os clientes consignados." });
+        if (active) setToast({ type: "error", message: "Não foi possível carregar os clientes a receber." });
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -113,7 +113,7 @@ function ConsignadosPage() {
       const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
       if (!rows.length) throw new Error("A planilha está vazia.");
       const date1904 = Boolean(workbook.Workbook?.WBProps?.date1904);
-      const importados: ClienteConsignado[] = [];
+      const importados: Clientea_receber[] = [];
       const codigos = new Set<string>();
       for (const [index, original] of rows.entries()) {
         const row: Record<string, unknown> = {};
@@ -157,7 +157,7 @@ function ConsignadosPage() {
     const quantidade = pendingImport.length;
     setImporting(true);
     try {
-      await consignadosAPI.importClientes(pendingImport);
+      await a_recebersAPI.importClientes(pendingImport);
       setPendingImport(null);
     } catch (error) {
       console.error(error);
@@ -166,8 +166,8 @@ function ConsignadosPage() {
       return;
     }
     try {
-      setClientes(await consignadosAPI.list());
-      setToast({ type: "success", message: `${quantidade} cliente(s) consignado(s) importado(s) com sucesso.` });
+      setClientes(await a_recebersAPI.list());
+      setToast({ type: "success", message: `${quantidade} cliente(s) a_receber importado(s) com sucesso.` });
     } catch (error) {
       console.error(error);
       setToast({ type: "error", message: "Os dados foram importados, mas a lista não pôde ser atualizada. Recarregue a página." });
@@ -190,7 +190,7 @@ function ConsignadosPage() {
         <div className="sticky top-0 z-20 border-b bg-background">
           <div className="flex items-center gap-3 p-4">
             <button onClick={() => setMenuOpen(true)} aria-label="Abrir menu" className="cursor-pointer rounded-md border p-2">☰</button>
-            <div><div className="font-bold">3A AUTOMOTIVE</div><div className="text-sm text-muted-foreground">CONSIGNADOS</div></div>
+            <div><div className="font-bold">3A AUTOMOTIVE</div><div className="text-sm text-muted-foreground">A Receber</div></div>
           </div>
         </div>
 
@@ -204,7 +204,7 @@ function ConsignadosPage() {
             <div className="flex flex-1 flex-col gap-3">
               <button onClick={() => { navigate({ to: "/clientes" }); setMenuOpen(false); }} className="flex cursor-pointer items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100"><Users size={20} />Clientes</button>
               <button onClick={() => { navigate({ to: "/historico" }); setMenuOpen(false); }} className="flex cursor-pointer items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100"><FileText size={20} />Histórico</button>
-              <button onClick={() => setMenuOpen(false)} aria-current="page" className="flex cursor-pointer items-center gap-3 rounded-xl bg-[#F28C38] px-5 py-4 text-left font-medium text-white shadow-sm"><WalletCards size={20} />Consignados</button>
+              <button onClick={() => setMenuOpen(false)} aria-current="page" className="flex cursor-pointer items-center gap-3 rounded-xl bg-[#F28C38] px-5 py-4 text-left font-medium text-white shadow-sm"><WalletCards size={20} />A Receber</button>
               <button onClick={handleLogout} className="mt-auto flex cursor-pointer items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-red-600 transition hover:bg-red-50"><LogOut size={20} />Sair</button>
             </div>
           </div>
@@ -215,12 +215,12 @@ function ConsignadosPage() {
           <div className="flex flex-col-reverse gap-4 md:flex-col">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar por nome, código, cidade, rota ou pedido..." aria-label="Buscar consignados" className="h-14 rounded-xl pl-12 text-base" />
+              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar por nome, código, cidade, rota ou pedido..." aria-label="Buscar a receber" className="h-14 rounded-xl pl-12 text-base" />
             </div>
-            <Button disabled={importing} className="h-12 w-full cursor-pointer rounded-2xl bg-[#F28C38] hover:bg-orange-400" onClick={() => fileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" />Importar Clientes Consignados</Button>
+            <Button disabled={importing} className="h-12 w-full cursor-pointer rounded-2xl bg-[#F28C38] hover:bg-orange-400" onClick={() => fileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" />Importar Clientes a Receber</Button>
           </div>
-          {loading ? <Spinner label="Carregando consignados..." /> : <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
-            {filtered.length === 0 && <div className="col-span-full rounded-2xl border bg-background p-8 text-center text-muted-foreground shadow-sm">Nenhum cliente consignado encontrado.</div>}
+          {loading ? <Spinner label="Carregando clientes a receber..." /> : <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
+            {filtered.length === 0 && <div className="col-span-full rounded-2xl border bg-background p-8 text-center text-muted-foreground shadow-sm">Nenhum cliente a receber encontrado.</div>}
             {filtered.map((cliente) => <div key={cliente.cliente} className="w-full rounded-2xl border bg-background p-3 shadow-sm">
               <div className="flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-200 text-xl">👤</div>
@@ -231,7 +231,7 @@ function ConsignadosPage() {
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground"><RouteIcon className="h-4 w-4 shrink-0" /><strong className=" text-blue-700">{normalizarRota(cliente.rota) || "Sem rota"}</strong></div>
                   </div>
                   <div className="mt-3"><div className="text-sm text-muted-foreground">Pedidos</div><div className="mt-1 break-words text-md font-semibold">{cliente.pedidos || "Nenhum pedido informado"}</div></div>
-                  <div className="mt-3"><div className="text-sm text-muted-foreground">Valor devedor</div><div className="text-lg font-bold text-orange-500">{formatarValor(cliente.valor)}</div></div>
+                  <div className="mt-3"><div className="text-sm text-muted-foreground">Saldo devedor</div><div className="text-lg font-bold text-orange-500">{formatarValor(cliente.valor)}</div></div>
                 </div>
               </div>
             </div>)}
@@ -242,7 +242,7 @@ function ConsignadosPage() {
           <div role="dialog" aria-modal="true" aria-labelledby="import-title" className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-xl">
             <Upload className="mx-auto h-16 w-16 text-[#F28C38]" />
             <div id="import-title" className="mt-5 text-2xl font-bold">Confirmar importação</div>
-            <div className="mt-2 text-lg text-muted-foreground">Deseja importar {pendingImport.length} cliente(s) consignado(s)?</div>
+            <div className="mt-2 text-lg text-muted-foreground">Deseja importar {pendingImport.length} cliente(s) a receber?</div>
             <p className="mt-2 text-sm text-muted-foreground">Clientes com o mesmo código serão atualizados.</p>
             <div className="mt-6 flex gap-3">
               <button onClick={() => setPendingImport(null)} disabled={importing} className="flex-1 cursor-pointer rounded-2xl border p-4 text-lg font-semibold text-zinc-600 hover:bg-zinc-100 disabled:opacity-50">Cancelar</button>

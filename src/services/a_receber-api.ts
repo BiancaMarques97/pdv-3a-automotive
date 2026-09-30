@@ -1,6 +1,6 @@
 import { supabase } from "@/services/supabase";
 
-export type ClienteConsignado = {
+export type Clientea_receber = {
   id?: number;
   cliente: string;
   nome: string;
@@ -12,10 +12,10 @@ export type ClienteConsignado = {
   rota?: string | null;
 };
 
-export const consignadosAPI = {
-  async list(): Promise<ClienteConsignado[]> {
+export const a_recebersAPI = {
+  async list(): Promise<Clientea_receber[]> {
     const { data, error } = await supabase
-      .from("clientes_consignados")
+      .from("clientes_a_receber")
       .select("*")
       .order("rota", { ascending: true })
       .order("cliente", { ascending: true });
@@ -25,9 +25,9 @@ export const consignadosAPI = {
     return data || [];
   },
 
-  async importClientes(clientes: ClienteConsignado[]) {
+  async importClientes(clientes: Clientea_receber[]) {
     const { data, error } = await supabase
-      .from("clientes_consignados")
+      .from("clientes_a_receber")
       .upsert(clientes, {
         onConflict: "cliente",
       })

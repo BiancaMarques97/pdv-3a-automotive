@@ -71,7 +71,7 @@ export const consignedAPI = {
 
   saveForCustomer: async (customerId: number, items: ConsignedItem[]) => {
     for (const item of items) {
-      await fetch("http://localhost:3333/consignados", {
+      await fetch("http://localhost:3333/a_recebers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -94,7 +94,7 @@ async function onSubmit(e: React.FormEvent) {
             
             </div>
             <p className="mt-8 text-md text-center font-medium leading-relaxed text-white/70">
-              Controle de pedidos e consignados.
+              Controle de pedidos e a_recebers.
             </p>
           </div>
 

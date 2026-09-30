@@ -12,9 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as PedidoFinalizadoRouteImport } from './routes/pedido-finalizado'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HistoricoRouteImport } from './routes/historico'
-import { Route as ConsignadoRouteImport } from './routes/consignado'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as A_receberRouteImport } from './routes/a_receber'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as NovoPedidoIdRouteImport } from './routes/novo-pedido.$id'
 import { Route as ClienteIdRouteImport } from './routes/cliente.$id'
@@ -34,11 +34,6 @@ const HistoricoRoute = HistoricoRouteImport.update({
   path: '/historico',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ConsignadoRoute = ConsignadoRouteImport.update({
-  id: '/consignado',
-  path: '/consignado',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ClientesRoute = ClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
@@ -47,6 +42,11 @@ const ClientesRoute = ClientesRouteImport.update({
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const A_receberRoute = A_receberRouteImport.update({
+  id: '/a_receber',
+  path: '/a_receber',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -67,9 +67,9 @@ const ClienteIdRoute = ClienteIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/a_receber': typeof A_receberRoute
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
-  '/consignado': typeof ConsignadoRoute
   '/historico': typeof HistoricoRoute
   '/login': typeof LoginRoute
   '/pedido-finalizado': typeof PedidoFinalizadoRoute
@@ -78,9 +78,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/a_receber': typeof A_receberRoute
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
-  '/consignado': typeof ConsignadoRoute
   '/historico': typeof HistoricoRoute
   '/login': typeof LoginRoute
   '/pedido-finalizado': typeof PedidoFinalizadoRoute
@@ -90,9 +90,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/a_receber': typeof A_receberRoute
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
-  '/consignado': typeof ConsignadoRoute
   '/historico': typeof HistoricoRoute
   '/login': typeof LoginRoute
   '/pedido-finalizado': typeof PedidoFinalizadoRoute
@@ -103,9 +103,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/a_receber'
     | '/checkout'
     | '/clientes'
-    | '/consignado'
     | '/historico'
     | '/login'
     | '/pedido-finalizado'
@@ -114,9 +114,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/a_receber'
     | '/checkout'
     | '/clientes'
-    | '/consignado'
     | '/historico'
     | '/login'
     | '/pedido-finalizado'
@@ -125,9 +125,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/a_receber'
     | '/checkout'
     | '/clientes'
-    | '/consignado'
     | '/historico'
     | '/login'
     | '/pedido-finalizado'
@@ -137,9 +137,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  A_receberRoute: typeof A_receberRoute
   CheckoutRoute: typeof CheckoutRoute
   ClientesRoute: typeof ClientesRoute
-  ConsignadoRoute: typeof ConsignadoRoute
   HistoricoRoute: typeof HistoricoRoute
   LoginRoute: typeof LoginRoute
   PedidoFinalizadoRoute: typeof PedidoFinalizadoRoute
@@ -170,13 +170,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoricoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/consignado': {
-      id: '/consignado'
-      path: '/consignado'
-      fullPath: '/consignado'
-      preLoaderRoute: typeof ConsignadoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/clientes': {
       id: '/clientes'
       path: '/clientes'
@@ -189,6 +182,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/a_receber': {
+      id: '/a_receber'
+      path: '/a_receber'
+      fullPath: '/a_receber'
+      preLoaderRoute: typeof A_receberRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -217,9 +217,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  A_receberRoute: A_receberRoute,
   CheckoutRoute: CheckoutRoute,
   ClientesRoute: ClientesRoute,
-  ConsignadoRoute: ConsignadoRoute,
   HistoricoRoute: HistoricoRoute,
   LoginRoute: LoginRoute,
   PedidoFinalizadoRoute: PedidoFinalizadoRoute,

@@ -154,7 +154,7 @@ function ClientesPage() {
       status: row.Status,
       cont: row.Cont,
       classe: row.Classe,
-      consignado: row.Consignado,
+      a_receber: row.a_receber,
     }));
 
     // Em vez de window.confirm, guarda os dados e abre o modal
@@ -277,13 +277,13 @@ function ClientesPage() {
                 </button>
 <button
   onClick={() => {
-    navigate({ to: "/consignado" });
+    navigate({ to: "/a_receber" });
     setMenuOpen(false);
   }}
   className="flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100 cursor-pointer"
 >
   <WalletCards size={20} />
-  Consignados
+A Receber
 </button>
                 <button
                   onClick={handleLogout}

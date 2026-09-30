@@ -336,7 +336,7 @@ function PedidoPage() {
   }}
   className="h-11 rounded-xl border px-3 text-sm"
 >
-  <option value="CSG">CONSIGNADO</option>
+  <option value="CSG">a_receber</option>
   <option value="CR">COM REPOSIÇÃO</option>
   <option value="SR">SEM REPOSIÇÃO</option>
   <option value="VA">VENDA AVULSA</option>
