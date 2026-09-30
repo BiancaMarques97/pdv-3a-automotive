@@ -14,7 +14,7 @@ import {
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import * as XLSX from "xlsx";
 
-export const Route = createFileRoute("/a_receber")({
+export const Route = createFileRoute("/a-receber")({
   beforeLoad: requireAuth,
   component: a_recebersPage,
 });

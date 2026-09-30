@@ -14,7 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as HistoricoRouteImport } from './routes/historico'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as CheckoutRouteImport } from './routes/checkout'
-import { Route as A_receberRouteImport } from './routes/a_receber'
+import { Route as AReceberRouteImport } from './routes/a-receber'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as NovoPedidoIdRouteImport } from './routes/novo-pedido.$id'
 import { Route as ClienteIdRouteImport } from './routes/cliente.$id'
@@ -44,9 +44,9 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
-const A_receberRoute = A_receberRouteImport.update({
-  id: '/a_receber',
-  path: '/a_receber',
+const AReceberRoute = AReceberRouteImport.update({
+  id: '/a-receber',
+  path: '/a-receber',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -67,7 +67,7 @@ const ClienteIdRoute = ClienteIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/a_receber': typeof A_receberRoute
+  '/a-receber': typeof AReceberRoute
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
   '/historico': typeof HistoricoRoute
@@ -78,7 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/a_receber': typeof A_receberRoute
+  '/a-receber': typeof AReceberRoute
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
   '/historico': typeof HistoricoRoute
@@ -90,7 +90,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/a_receber': typeof A_receberRoute
+  '/a-receber': typeof AReceberRoute
   '/checkout': typeof CheckoutRoute
   '/clientes': typeof ClientesRoute
   '/historico': typeof HistoricoRoute
@@ -103,7 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/a_receber'
+    | '/a-receber'
     | '/checkout'
     | '/clientes'
     | '/historico'
@@ -114,7 +114,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/a_receber'
+    | '/a-receber'
     | '/checkout'
     | '/clientes'
     | '/historico'
@@ -125,7 +125,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/a_receber'
+    | '/a-receber'
     | '/checkout'
     | '/clientes'
     | '/historico'
@@ -137,7 +137,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  A_receberRoute: typeof A_receberRoute
+  AReceberRoute: typeof AReceberRoute
   CheckoutRoute: typeof CheckoutRoute
   ClientesRoute: typeof ClientesRoute
   HistoricoRoute: typeof HistoricoRoute
@@ -184,11 +184,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/a_receber': {
-      id: '/a_receber'
-      path: '/a_receber'
-      fullPath: '/a_receber'
-      preLoaderRoute: typeof A_receberRouteImport
+    '/a-receber': {
+      id: '/a-receber'
+      path: '/a-receber'
+      fullPath: '/a-receber'
+      preLoaderRoute: typeof AReceberRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -217,7 +217,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  A_receberRoute: A_receberRoute,
+  AReceberRoute: AReceberRoute,
   CheckoutRoute: CheckoutRoute,
   ClientesRoute: ClientesRoute,
   HistoricoRoute: HistoricoRoute,

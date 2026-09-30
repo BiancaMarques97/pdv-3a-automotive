@@ -277,7 +277,7 @@ function ClientesPage() {
                 </button>
 <button
   onClick={() => {
-    navigate({ to: "/a_receber" });
+    navigate({ to: "/a-receber" });
     setMenuOpen(false);
   }}
   className="flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100 cursor-pointer"
