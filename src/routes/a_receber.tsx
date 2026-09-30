@@ -9,7 +9,7 @@ import { supabase } from "@/services/supabase";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   CheckCircle2, FileText, LogOut, MapPin, Route as RouteIcon,
-  Search, Upload, Users, WalletCards, X, XCircle,
+  Search, Upload, Users, Wallet, WalletCards, X, XCircle,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import * as XLSX from "xlsx";
@@ -204,7 +204,7 @@ function a_recebersPage() {
             <div className="flex flex-1 flex-col gap-3">
               <button onClick={() => { navigate({ to: "/clientes" }); setMenuOpen(false); }} className="flex cursor-pointer items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100"><Users size={20} />Clientes</button>
               <button onClick={() => { navigate({ to: "/historico" }); setMenuOpen(false); }} className="flex cursor-pointer items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100"><FileText size={20} />Histórico</button>
-              <button onClick={() => setMenuOpen(false)} aria-current="page" className="flex cursor-pointer items-center gap-3 rounded-xl bg-[#F28C38] px-5 py-4 text-left font-medium text-white shadow-sm"><WalletCards size={20} />A Receber</button>
+              <button onClick={() => setMenuOpen(false)} aria-current="page" className="flex cursor-pointer items-center gap-3 rounded-xl bg-[#F28C38] px-5 py-4 text-left font-medium text-white shadow-sm"><Wallet size={20} />A Receber</button>
               <button onClick={handleLogout} className="mt-auto flex cursor-pointer items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-red-600 transition hover:bg-red-50"><LogOut size={20} />Sair</button>
             </div>
           </div>

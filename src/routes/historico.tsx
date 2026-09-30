@@ -20,7 +20,8 @@ import {
   LogOut,
   Filter,
   Share2,
-  ClipboardList
+  ClipboardList,
+  Wallet
 } from "lucide-react";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -663,7 +664,7 @@ const [sharingId, setSharingId] = useState<string | null>(null);
   }}
   className="flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100 cursor-pointer"
 >
-  <ClipboardList size={20} />
+  <Wallet size={20} />
   A Receber
 </button>
                   <button
