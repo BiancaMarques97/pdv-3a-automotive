@@ -912,7 +912,7 @@ const [sharingId, setSharingId] = useState<string | null>(null);
                       <option value="Deposito Bancario">Deposito Bancário</option>
                       <option value="Boleto">Boleto</option>
                       <option value="Cheque">Cheque</option>
-                      <option value="a_receber">a_receber</option>
+                      <option value="Consignado">Consignado</option>
                       <option value="PagSeguroF">PagSeguroF</option>
                       <option value="PagSeguroL">PagSeguroL</option>
                       <option value="PagSeguro3A">PagSeguro3A</option>
@@ -948,7 +948,7 @@ const [sharingId, setSharingId] = useState<string | null>(null);
                             }
                             className="h-10 shrink-0 rounded-xl border px-2 text-sm"
                           >
-                            <option value="CSG">a_receber</option>
+                            <option value="CSG">CONSIGNADO</option>
                             <option value="CR">COM REPOSIÇÃO</option>
                             <option value="SR">SEM REPOSIÇÃO</option>
                             <option value="VA">VENDA AVULSA</option>

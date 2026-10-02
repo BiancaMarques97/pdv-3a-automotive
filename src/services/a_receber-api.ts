@@ -26,15 +26,12 @@ export const a_recebersAPI = {
   },
 
   async importClientes(clientes: Clientea_receber[]) {
-    const { data, error } = await supabase
-      .from("clientes_a_receber")
-      .upsert(clientes, {
-        onConflict: "cliente",
-      })
-      .select();
+    if (!clientes.length) {
+      throw new Error("Nenhum cliente válido para importar.");
+    }
+
+    const { error } = await supabase.rpc("sincronizar_a_receber", { p_clientes: clientes });
 
     if (error) throw error;
-
-    return data;
   },
 };
