@@ -11,6 +11,7 @@ import { productsAPI } from "@/services/products";
 import { requireAuth } from "@/lib/auth";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Spinner } from "@/components/Spinner";
+import { SidebarMenu } from "@/components/SidebarMenu";
 
 export const Route = createFileRoute("/clientes")({
   beforeLoad: requireAuth,
@@ -232,70 +233,11 @@ function ClientesPage() {
 
         {/* MENU */}
 
-        {menuOpen && (
-          <>
-            {/* BACKDROP */}
-
-            <div onClick={() => setMenuOpen(false)} className="fixed inset-0 z-40 bg-black/40" />
-
-            {/* SIDEBAR */}
-
-            <div className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col border-r bg-white p-4 shadow-xl">
-              <div className="mb-8 flex items-start justify-between">
-                <div className="flex w-full flex-col items-center">
-                  <img
-                    src={logo3a}
-                    alt="3A Automotive"
-                    className="mb-4 h-28 w-28 object-contain"
-                  />
-                </div>
-                <button
-                  onClick={() => setMenuOpen(false)}
-                  className="rounded-md p-2 text-zinc-500 hover:bg-zinc-100 cursor-pointer"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-              <div className="flex flex-1 flex-col gap-3">
-                <button
-                  onClick={() => {
-                    navigate({ to: "/clientes" });
-                    setMenuOpen(false);
-                  }}
-                  className="flex items-center gap-3 rounded-xl bg-[#F28C38] px-5 py-4 text-left font-medium text-white shadow-sm transition cursor-pointer"
-                >
-                  <Users size={20} /> Clientes
-                </button>
-                <button
-                  onClick={() => {
-                    navigate({ to: "/historico" });
-                    setMenuOpen(false);
-                  }}
-                  className="flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100 cursor-pointer"
-                >
-                  <FileText size={20} /> Histórico
-                </button>
-<button
-  onClick={() => {
-    navigate({ to: "/a-receber" });
-    setMenuOpen(false);
-  }}
-  className="flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-zinc-600 transition hover:bg-zinc-100 cursor-pointer"
->
-  <Wallet size={20} />
-A Receber
-</button>
-                <button
-                  onClick={handleLogout}
-                  className="mt-auto flex items-center gap-3 rounded-xl px-5 py-4 text-left font-medium text-red-600 transition hover:bg-red-50 cursor-pointer"
-                >
-                  <LogOut size={20} />
-                  Sair
-                </button>
-              </div>
-            </div>
-          </>
-        )}
+      <SidebarMenu
+  open={menuOpen}
+  onClose={() => setMenuOpen(false)}
+  onLogout={handleLogout}
+/>
 
         {/* CONTENT */}
 
