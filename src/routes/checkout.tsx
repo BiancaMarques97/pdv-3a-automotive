@@ -47,7 +47,7 @@ function CheckoutPage() {
 
   // "A Receber" exige assinatura do cliente confirmando o recebimento
   // das peças, já que o pagamento fica pendente.
-  const requiresSignature = payment === "A Receber" || payment === "a_receber";
+  const requiresSignature = payment === "A Receber" || payment === "Consignado";
 
 
   // Botão só fica desabilitado quando a forma de pagamento exige
@@ -162,7 +162,7 @@ async function finalizeOrder() {
   <option value="Deposito Bancario">Deposito Bancário</option>
   <option value="Boleto">Boleto</option>
   <option value="Cheque">Cheque</option>
-  <option value="Consignado">Consignado</option>
+  <option value=""></option>
   <option value="PagSeguroF">PagSeguroF</option>
   <option value="PagSeguroL">PagSeguroL</option>
   <option value="PagSeguro3A">PagSeguro3A</option>
