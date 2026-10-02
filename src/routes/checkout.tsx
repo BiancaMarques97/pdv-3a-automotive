@@ -162,7 +162,7 @@ async function finalizeOrder() {
   <option value="Deposito Bancario">Deposito Bancário</option>
   <option value="Boleto">Boleto</option>
   <option value="Cheque">Cheque</option>
-  <option value=""></option>
+  <option value="Consignado">Consignado</option>
   <option value="PagSeguroF">PagSeguroF</option>
   <option value="PagSeguroL">PagSeguroL</option>
   <option value="PagSeguro3A">PagSeguro3A</option>
