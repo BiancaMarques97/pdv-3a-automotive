@@ -154,7 +154,7 @@ function ClientesPage() {
       status: row.Status,
       cont: row.Cont,
       classe: row.Classe,
-      a_receber: row.a_receber,
+      consignado: row.consignado,
     }));
 
     // Em vez de window.confirm, guarda os dados e abre o modal
